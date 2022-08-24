@@ -1,0 +1,972 @@
+---
+title: "Development Indicators 2017-Part 1 "
+subtitle: "Data Cleaning,Analysis and Visualisation"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.pos = 'H')
+knitr::opts_chunk$set(fig.align = 'center')
+library(dplyr)
+library(irlba)
+library(ggplot2)
+library(ggpubr)
+library(tidyverse)
+library(reshape2)
+library(caret)
+library(Metrics)
+library(gridExtra)
+library(corrplot)
+library(PerformanceAnalytics)
+library(ggmap)
+library(maps)
+library(leaflet)
+library(naniar)
+library(RColorBrewer)
+library(rgdal)
+library(ggcorrplot)
+library(factoextra)
+library(scales)
+library(ggrepel)
+library(GGally)
+
+#Set seed to replicate results
+set.seed(9)
+#Load data
+dev.inc<- read_csv("data.csv") 
+#  Read this shape file with the rgdal library found
+#http://thematicmapping.org/downloads/world_borders.php
+my_spdf <- readOGR( dsn= "/Users/papagiannizoe/Desktop/MSc-Imperial/Term 2/Data visualisation/Assessments/Assessment_5/TM_WORLD_BORDERS_SIMPL-0.3" , 
+                    layer="TM_WORLD_BORDERS_SIMPL-0.3", verbose=FALSE)
+
+##Maps
+#Prepare maps
+mapWorld <-map('world',col="grey", fill=TRUE, bg="white", lwd=0.05, mar=rep(0,4),border=0, ylim=c(-80,80) )
+```
+
+# Introduction
+This project sets out to explore the data published by the World Bank at https://data.worldbank.org/1, which contains the 2017 values of a selection of ‘global development indicators’ for 68 countries. Each observation in this dataset corresponds to a single country, and most of the variables correspond to a development indicator.
+In particular, the data contains 14 variables:
+
+* `country` : Name of country.
+* `region` : Geographical region.
+* `income` : Income category, as specified by the World Bank.
+* `GDP.percap` : GDP per capita (current USD).
+* `Market.Cap.pcntGDP` : Market capitalization of domestic listed companies (% of GDP).
+* `Unemployment.female` : Unemployment, female (% of female labour force) .
+* `Unemployment.male` : Unemployment, male (% of male labour force). 
+* `Education.Expend` : Government expenditure on education, total (% of GDP).
+* `Arable.Land.pcnt` : Arable Land (% of land area).
+* `Life.Expect.female` : Life expectancy at birth.
+* `Life.Expect.male` :  Life expectancy at birth, male (years).
+* `Mortality.u5` : The number of children who die by the age of 5 years, per 1000 live births.
+* `CO2.emiss.mtpercap` : CO2 emissions (metric tons per capita). 
+* `Access2Elec.pcnt` :  Access to electricity (% of population).
+  
+# Exploratory data analysis
+## Structure
+Our dataset has 68 observations and 14 variables as mentioned above. The first three variables are characters while the rest of the variables are continuous numeric values. 
+```{r,echo=TRUE}
+#High-level information
+str(dev.inc)
+```
+The variables `region` and `income` are categorical and they take only predefined values. Those variables are saved as characters and hence we convert them to factors. We observe that region has 7 levels and income has 3. However the variable `income` is in random order and in order to facilitate our analysis we reorder the levels.  
+```{r,,echo=FALSE}
+dev.inc$region<-as.factor(dev.inc$region)
+levels(dev.inc$region) %>% 
+  knitr::kable("html") %>%
+  kableExtra::kable_styling(latex_options = "hold_position")
+dev.inc$income<-as.factor(dev.inc$income)
+
+levels(dev.inc$income) %>% 
+  knitr::kable("html") %>%
+  kableExtra::kable_styling(latex_options = "hold_position")
+
+#Change the order of levels
+dev.inc$income <- factor(dev.inc$income, levels = c("Lower middle income", "Upper middle income","High income"))
+```
+
+## Qualtity of Data
+The data set, as previously stated, contains 68 observations and 14 variables. The first variable specifies the country to which the observation belongs. The second and third variables are categorical, and they describe each country's region and income category as classified by the World Bank in 2017. This section examines the data for missing values, and/or outliers.
+
+### Missing Values
+This section sets out to investigate the existence of missing values and identify any features that contain a lot of them. In Figure 1, the right graph shows the proportion and position of missing values for each feature in black. These values account for 1.3 percent of the total and are all in the `Education.Expend.` There are 12 missing observations out of 68 for this specific feature, accounting for 18% of the total. At first glance, there doesn't appear to be any pattern in the missingness. We plot the variable Education.Expend against categorical variables `income` and `region`, as well as continuous variables, `GDP.precap` and `Market.Cap.pcntGDP`, to identify the type of missingness in the data and visualize any existing relationships. 
+```{r,Fig1,echo=TRUE,fig.align='center',fig.cap="\\label{fig:fig1}Missing Values"}
+vis_miss(dev.inc)
+sum(is.na(dev.inc))
+```
+The figure below shows the percentage of missing values per region and income category. Looking at the first row we observe that 100% of the data is missing from North America and around 75% from South Asia and 25% from Middle East and North Africa. Regarding the second row, we observe that 40% of the data is missing from lower income countries and less than 20% from High income countries.
+
+```{r,Fig2,echo=FALSE,out.width = '50%',fig.align='center',fig.cap="\\label{fig:fig2} Income Categories"}
+dev.inc %>% select(region,Education.Expend) %>% 
+  gg_miss_fct(region)+
+  theme(legend.position = 'top',
+        text = element_text(size = 14))+
+  ylab('')
+
+dev.inc %>% select(Education.Expend,income) %>% 
+  gg_miss_fct(income)+
+  theme(legend.position = 'top',
+        text = element_text(size = 14))+
+  ylab('')
+```
+
+The graph below shows the variable `Education.Expend` plotted againts `GDP.precap` and `Market.Cap.pcntGDP` by region and income.The missing values are shown as red dots near the bottom of each panel. 
+We can see that the missing values exist across the whole range in both of the graphs and the distribution is similar to the one of the none missing observations .In particular, in the first graph it can be seen that some values are clustered in the lower range of GDP. In the second graph, the missing values are uniformly distributed acrros the x-axis.
+
+```{r,Fig3,echo=FALSE,fig.align='center',fig.cap="\\label{fig:fig3} Missing Values"}
+ggplot(dev.inc, aes(x = GDP.percap,y = Education.Expend)) + 
+  geom_miss_point()+
+  #Theme customization
+  theme_bw()+
+  #Legend position and Axis and fond size customization 
+  theme(legend.position = 'top',
+        text = element_text(size = 10),
+        axis.line = element_line(colour = "black",size = 0.25))+
+  #scale customization
+  scale_x_continuous(labels=scales::dollar_format())+
+  scale_y_continuous(labels= function(x) paste0(x, "%"))+
+  #Title and axes
+  xlab('GDP per capita')+
+  ylab('Education Exp. (% of GDP)')+
+  ggtitle("Missing Values")+
+  scale_color_brewer(palette = 'Set1')
+
+ggplot(dev.inc, aes(x = Market.Cap.pcntGDP,y = Education.Expend)) + 
+  geom_miss_point()+
+  #Theme customization
+  theme_bw()+
+  #Legend position and Axis and fond size customization 
+  theme(legend.position = 'none',
+        text = element_text(size = 10),
+        axis.line = element_line(colour = "black",size = 0.25))+
+  #scale customization
+  scale_x_continuous(labels= function(x) paste0(x, "%"))+
+  scale_y_continuous(labels= function(x) paste0(x, "%"))+
+  #Title and axes
+  xlab('Market Capitalisation (%GDP)')+
+  ylab('Education Exp.(% of GDP)')+
+  scale_color_brewer(palette = 'Set1')
+```
+
+The table below illustrates the missing values grouped per region. The first column shows the region, the second column shows the missing variable the third column show the number of missing values and the last column shows the percentages of missing values per region.
+We can see that there isn't any data about education expenditure for North America, while 1/3 of the data is missing for South Asia. In addition, 36% and 20 % of values are missing for the Middle East & North Africa and Sub-Saharan Africa respectfully. 
+```{r,,echo=FALSE}
+proportion<-dev.inc %>%
+  group_by(region) %>% 
+  miss_var_summary() %>% 
+  filter(variable == "Education.Expend") 
+proportion %>% 
+  knitr::kable("html")%>%
+  kableExtra::kable_styling(latex_options = "hold_position")
+```
+
+Similarly, the table below shows the missing values grouped per income category.The table is similar to the above with the difference that the first column shows the income. We observe that approximately the same number of data is missing from low income and high income countries, however the number of countries in the low income category is smaller than the high income and as a result the proportion of missing values is bigger.
+
+```{r,,echo=FALSE}
+dev.inc %>%
+  group_by(income) %>% 
+  miss_var_summary() %>% 
+  filter(variable == "Education.Expend") %>% 
+  knitr::kable("html")%>%
+  kableExtra::kable_styling(latex_options = "hold_position")
+```
+
+Those observations indicate that MCAR (Missing completely at random) does not apply to this variable, and we would need to consider the missing data to be either MAR or MNAR. MAR (Missing at random) assumes that we can predict the missing value based on the rest of the data.By conditioning on income, we can find that the resulting univariate distributions (for each of the other variables) appear similar for those observations for which ed.exp is missing as for those for which it is not. Hence, missingness appears to be explained by an observed variable (income), and not an unobserved variable. This suggests MAR more appropriate than MNAR.
+
+We chose to drop the column Education Expenditure, as we lack all data for North America and a significant proportion of South Asia. 
+```{r,echo=TRUE}
+#Select Education.Expend and remove rows containing NA
+ed.exp<-dev.inc %>%select(country,Education.Expend) %>% na.omit
+#Remove Education Expenditure
+dev.inc<-dev.inc %>%select(-Education.Expend)
+#Select Numeric Data
+num.data<-dev.inc %>% 
+  select_if(is.numeric)
+```
+
+### Outliers and Errors
+Next, we move on finding outliers.The below figure  shows the box plots for each numeric variable in the data set. The red points are the outliers. We can see that all the variables have some observations that deviate from the rest, but they are not out of bounds (for example negative or above a normal range) and they make logical sense. This is expected as those variables describe unique development indicators in which some countries perform worse or better.
+
+Note: Boxplots aren't always appropriate for detecting outliers, particularly if the variables distribution is higly skewed.If we had noticed some anomalous data we would be worth to choose to investigate further by visualizing histograms and parfoming the IQR method. 
+```{r,Fig4,echo=FALSE,fig.align='center',fig.cap="\\label{fig:fig4} Boxplots"}
+boxplots<-list()
+for (i in 1:ncol(num.data)){
+  p<-ggplot(data = num.data[i], aes(x = "", y =num.data[[i]])) +
+    # Error bars
+    stat_boxplot(geom = "errorbar",width = 0.2) +
+    # Box color
+    geom_boxplot(fill = "#4271AE",colour = "#1F3552",       
+                 outlier.colour = "red", # Outliers color
+                 alpha = 0.8) +          # Box color transparency
+    #Theme customization
+    theme_bw()+
+    theme(axis.line = element_line(colour = "black",size = 0.25),
+          axis.title.x=element_text(size=5),
+          text = element_text(size = 5))+
+    #Axes titles
+    xlab(paste(colnames(num.data[i])))+
+    ylab('')
+  
+  #Save plots in list  
+  boxplots[[i]] <- ggplotGrob(p)
+}
+do.call("grid.arrange", c(boxplots, ncol=5))
+```
+# Exploration of the univariate and multivariate distribution
+Up until now we investigate the structure and quality of the data. The following section presents a brief exploration of the univariate and multivariate distribution of the data.
+
+## Univariate Analysis
+For the univariate analysis we're to investigate the distribution of the categorical and numerical variables. The bellow figure shows the number of variables in each category on the left plot, the violin plots of the numerical variables on the centre plot, and the histogram of education expenditure on the right plot. We notice that a lot of countries are classified as high income, followed by upper middle income. and the majority are located in Europe and South Asia and the Middle East and North Africa. 
+
+```{r Fig5,,echo=FALSE,fig.align='center',fig.cap="\\label{fig:fig5} Distribution of categorical variables"}
+##Distribution categorical variables
+cat.1<-ggplot(dev.inc, aes(x=income)) +
+  #Bar color
+  geom_bar(fill = "#4271AE",colour = "#1F3552",alpha=0.7)+
+  #Label text
+  stat_count(geom = "text", colour = "white", size = 2.5,
+             aes(label = ..count..),position=position_stack(vjust=0.5))+
+  #Theme customization
+  theme_bw()+
+  #Axis and fond size customisation 
+  theme(axis.line = element_line(colour = "black",size = 0.25),
+        plot.title = element_text(size=8),
+        axis.title=element_text(size=8),
+        text = element_text(size = 8))+
+  #Title
+  ggtitle("Observations per income category")+
+  #X-Axis
+  xlab('')+
+  #Flip coordinates
+  coord_flip()+scale_fill_brewer(palette = "Set1")
+
+cat.2<-ggplot(dev.inc, aes(x=region)) +
+  geom_bar(fill = "#4271AE",colour = "#1F3552",alpha=0.7)+       # Box color
+  #Label text
+  stat_count(geom = "text", colour = "white", size = 2.5,
+             aes(label = ..count..),position=position_stack(vjust=0.5))+
+  #Theme customization
+  theme_bw()+
+  #Axis and fond size customisation 
+  theme(axis.line = element_line(colour = "black",size = 0.25), 
+        plot.title = element_text(size=8),
+        axis.title=element_text(size=8),
+        text = element_text(size = 8))+
+  #Plot Title 
+  ggtitle("Observations per region")+
+  #X-Axis
+  xlab('')+
+  #Flip coordinates
+  coord_flip()
+
+grid.arrange(cat.1,cat.2, ncol=2)
+```
+The next table shows the summary statistics of each variable. It's interesting to note that for the variable GPD per capital, the difference between the mean and the median is quite significant. This caused by the countries with the highest GDPs.
+```{r,echo=FALSE}
+dev.inc %>% select_if(is.numeric) %>% 
+  summary() 
+```
+Next,the figure below shows the violin plots for the numeric variables. Except for the variables describing life expectancy, all of the numeric variable distributions are positively skewed. Life expectancy appears to have a bimodal distribution, as evidenced by the presence of two peaks. Most of the observations for the variable Access to Electricity Access to Electricity are gathered around 100%, with a portion of them ranging between 50% and 100%. Finally, the distribution of Education Expenditure is nearly normal, with two outliers on the right.
+```{r Fig6,echo=FALSE,fig.align='center',fig.cap="\\label{fig:fig6} Distribution of numerical variables"}
+###Distribution numerical variables
+#Distributions
+distributions<-list()
+for (i in 1:ncol(num.data)){
+  den<-density(num.data[[i]])
+  p<-ggplot(data = num.data[i], aes(x = "", y =num.data[[i]])) +
+    geom_violin(position=position_dodge(1),trim=FALSE,fill = "#4271AE",alpha=0.7)+
+    geom_boxplot(colour = "#1F3552",       # Box color
+                 outlier.colour = "red", # Outliers color
+                 alpha = 0.9,width=0.1)+
+    #Theme customization
+    theme_bw()+
+    theme(axis.line = element_line(colour = "black",size = 0.25),
+          text = element_text(size = 8))+
+    #Axes titles
+    xlab(paste(colnames(num.data[i])))+
+    ylab('')
+  distributions[[i]] <- ggplotGrob(p)
+}
+
+do.call("grid.arrange", c(distributions, ncol=5))
+```
+Finally we're going to look into the distribution of Education Expenditure.%. The distribution is close to normal, and there are two outliers on the right.
+```{r Fig7,echo=FALSE,fig.align='center',fig.cap="\\label{fig:fig6} Distribution of numerical variables"}
+ggplot(ed.exp,aes(x=Education.Expend))+
+  geom_boxplot(color= "#1F3552",fill = "#4271AE",alpha=0.7)+
+  #Theme customization
+  theme_bw()+
+  theme(axis.line = element_line(colour = "black",size = 0.25),
+        text = element_text(size = 8))+
+  scale_x_continuous(labels= function(x) paste0(x, "%"))+
+  #Axes titles
+  xlab('Government expenditure on education(% of GDP)')+
+  ggtitle('Education Expenditure Histogram')+coord_flip()
+```
+## Multivariate Analysis
+The figure below is visual representation of the multivariate correlation structure and their significance levels. The heatmap shows the pairwise Pearson correlation coefficients between the variables. The variables which do not have a significant correlation are left blank. We observe that:
+
+* Mortality has a very high negative correlation with access to electricity and lives expectancy of both genders.
+* Arable Land is not strongly correlated with any other variable.
+* Unemployment rate for males and females are strongly correlated with each other.
+* CO2 consumption has a moderate positive correlation with GDP per cap while GDP per capita has a moderate positive correlation with life expectancy.
+* Live expectancy for both genders are very highly positively correlated with each other and access to electricity.
+
+```{r,Fig8,echo=FALSE,fig.align='center',fig.cap="\\label{fig:fig8} Distribution of numerical variables "}
+#Correlation matrices--------------------------------------------------------------------------------------
+#Find correlation matrix
+cor.features<-cor(num.data)
+#Visualize correlations
+ggcorrplot(cor.features,p.mat= cor_pmat(num.data),
+           insig = "blank",
+           #Hierarchical clustering
+           hc.order = TRUE,
+           #Display values
+           lab = TRUE,
+           lab_size = 2.5, 
+           #Outline color
+           outline.col = "white",
+           #Method square
+           method = 'square',
+           ggtheme = theme_bw(),
+           tl.cex=7,
+           #Colors
+           colors = c( "#377EB8", "white","#E41A1C"))
+```
+Based on the observations above, we are going to investigate the relationship between the variables that display strong correlations.
+In particular, we're going to investigate:
+
+* Income Categories and the relationship with GDP per capita (current USD) and market capitalization of domestic listed companies (% of GDP).Moreover we're going to look at the number of countries in each income category for each section and display the maps that show the GDP per capita and Market Cap globally for each country. 
+* CO2 consumption per capita and the relationship with GDP per capita and income categories.
+* Unemployment rate by gender for each country and region. In addition we're going to explore how it's related to income categories and GDP per capita.
+* Life expectancy by gender for each country and region. In addition we're going to explore how it's related to GDP per capita and Market Cap.
+* Mortality and the relationship with female life expectancy and access to electricity.
+* Percentage of access to electicity globally for each country.
+* Arable land globally for each country.
+* Education Expenditure globally for each country.
+
+### Income Categories
+First, we are going to explore the relationship between income categories, GDP per capita (current USD) and market capitalization of domestic listed companies (% of GDP). 
+```{r,,echo=FALSE}
+dev.inc %>% select(income,GDP.percap,Market.Cap.pcntGDP) %>% 
+  group_by(income) %>% 
+  summarise(maxGDP=max(GDP.percap),minGDP=min(GDP.percap),maxMarketCap=max(Market.Cap.pcntGDP),minMarketCap=min(Market.Cap.pcntGDP)) %>% 
+  knitr::kable("html")%>%
+  kableExtra::kable_styling(latex_options = "hold_position")
+```
+The figure below displays the relationship between GDP per capita and Market cap for each income category.We observe the relationship is linear and because of South Africa's Market Cap the trending line is curved at the end.
+```{r, Fig9,echo=FALSE,message=FALSE,fig.align='center',fig.cap="\\label{fig:fig9} Number of countries in Income Categories"}
+ggplot(dev.inc,aes(x=Market.Cap.pcntGDP,y=GDP.percap)) +
+  geom_point(aes(color=income))+
+  #Theme customization
+  geom_smooth(method = 'loess',se=FALSE)+
+  #Label outliers
+  geom_text(aes(label= ifelse(GDP.percap > quantile(GDP.percap, 0.95),
+                              as.character(country),'')),hjust=0.7,vjust=0.2)+
+  geom_text(aes(label= ifelse(Market.Cap.pcntGDP > quantile(Market.Cap.pcntGDP, 0.95),
+                              as.character(country),'')),hjust=0.7,vjust=0.2)+
+  #scale customization
+  scale_y_continuous(labels=scales::dollar_format())+
+  #Theme customization
+  theme_bw()+
+  #Legend position and Axis and fond size customization 
+  theme(text = element_text(size = 10),
+        axis.line = element_line(colour = "black",size = 0.25))+
+  #Color customization 
+  scale_colour_brewer(palette="Set1")+
+  #Title and axes
+  xlab('Market Cepitalisation (%GDP)')+
+  ylab('GDP per capita')+
+  labs(color = "Income category")+
+  ggtitle('GDP and Market capitalisation for each income category')
+```
+The figure below provides a breakdown of the number of counties in each category for each region. We observe that all countries are categorized as high income in North America and lower middle income in South Asia.It can be seen that there is there is no country in the high income category in Sub-Saharan Africa and in contrast there is no country categorized as lower middle income in Latin America & Caribbean and North America.Finally, in all the other regions there are countries categorized in all income levels.The majority of the countries in Europe and Central Asia are in the high income category whereas there is only 1 country is in the lower middle income, which in the next code section we find is Ukraine.In addition, in the Middle East & North Africa we see some inequality as countries are either in the highest or lower category with only two in the middle. Finally, in East Asia& Pacific, countries are spread more equally. 
+```{r Fig10,echo=FALSE,fig.align='center',fig.cap="\\label{fig:fig10} Number of countries in Income Categories"}
+dev.inc %>% group_by(region,income)%>% count() %>% 
+  ggplot(aes(x=n, y=region, fill=income))+
+    #Plot Type
+    geom_bar(stat="identity", position=position_dodge())+
+    #Labels
+    geom_text(aes(label=n), hjust=1.6, color="white",
+              position = position_dodge(0.9), size=3.5)+
+    #Theme and colors
+    theme_bw()+
+    scale_fill_brewer(palette="Set1")+
+    #Title and Axis labels
+    theme(legend.position = c(0.8, 0.8))+
+    labs(title = "Number of countries in each income category per region",
+         fill='Income\n Categories')+
+    xlab('Number of countries')+ylab('')+
+   #Title size
+    theme(plot.title = element_text(size=10),
+        text = element_text(size=9))
+
+```
+We're going to filter the data to investigate which country in Europe and Central Asia is in the lower income category.
+```{r,echo=FALSE}
+dev.inc %>% select(country,region,income) %>% filter(region=='Europe & Central Asia',income=='Lower middle income') %>% 
+  knitr::kable("html")%>%
+  kableExtra::kable_styling(latex_options = "hold_position")
+```
+
+```{r,echo= FALSE}
+# Prepare data for maps
+data<-dev.inc %>% select(country,Unemployment.female,Unemployment.male,
+                         GDP.percap,Market.Cap.pcntGDP,Arable.Land.pcnt,income,
+                         Mortality.u5,CO2.emiss.mtpercap, Access2Elec.pcnt)
+join.coord<-data %>% left_join(my_spdf@data, by=c('country'='NAME'))
+#Education data frame
+data.ed<-ed.exp%>% left_join(my_spdf@data, by=c('country'='NAME'))
+```
+This map shows the GDP per capita and Market Capitalisations in every country globally.
+```{r Fig11,echo=FALSE,fig.align='center'}
+##GDP per capita
+mybins.gdp<-seq(0, 110000,13750)
+mypalette.gdp <- colorBin( palette="PuBu", domain=join.coord$GDP.percap, na.color="transparent", bins=mybins.gdp)
+
+leaflet(my_spdf) %>% addTiles()  %>% 
+  setView(lat=10, lng=0 , zoom=2) %>%
+  addPolygons( 
+    fillColor = ~mypalette.gdp(join.coord$GDP.percap), 
+    stroke=TRUE, 
+    fillOpacity = 0.9, 
+    color="white", 
+    weight=0.3) %>% 
+  addLegend(pal = mypalette.gdp,
+    values=~join.coord$GDP.percap,
+    labFormat = labelFormat(prefix="$"),
+    opacity=0.9, title = "GDP per Capita(current USD) ", 
+    position = "bottomleft")
+
+mybins.marketcap<-seq(0, 325,65)
+mypalette.marketcap <- colorBin( palette="BuGn", domain=join.coord$Market.Cap.pcntGDP, na.color="transparent", bins=mybins.marketcap)
+
+##Market Capitalization
+leaflet(my_spdf) %>% addTiles()  %>% 
+  setView(lat=10, lng=0 , zoom=2) %>%
+  addPolygons( 
+    fillColor = ~mypalette.marketcap(join.coord$Market.Cap.pcntGDP), 
+    stroke=TRUE, 
+    fillOpacity = 0.9, 
+    color="white", 
+    weight=0.3) %>% 
+  addLegend(pal = mypalette.marketcap,
+            values=~join.coord$Market.Cap.pcntGDP,
+            opacity=0.9, title = "Market capitalisation (% of GDP)", 
+            position = "bottomleft")
+
+```
+### CO2 and income
+
+The first plot shows a violin plot of CO2 emissions per income category. We can see that the mean CO2 consumption doesn't differ a lot between different categories, but as we move up the categories, the range of the distirbution increases.
+The second graph shows the relationship between CO2, GDP per capita, and income category. The coloured dashed lines show the mean value of CO2 emissions for each income category. The countries in the high-income category produce the most CO2 emissions. There are nine countries producing more than 15 metric tons per capita, whilst most of the countries' emissions stay below 10 tons per capita. These graphs also give us the opportunity to see how GDP per capita is distributed in each income category. While the observations in the upper and lower income categories cover a narrow range and are gathered below 20,000 dollars, the values in the high-income category are more dispersed and cover a range that is more than triple that of the other two categories.The curve increases gradually until about 12 tons/capita and shows that as GPD increases, CO2 emissions increase at a slower rate.
+```{r,echo=FALSE}
+# Change violin plot colors by groups
+ggplot(dev.inc,aes(y=CO2.emiss.mtpercap,x=income)) +
+  geom_violin(position=position_dodge(1),trim=FALSE,fill = "#4271AE")+
+  geom_boxplot(colour = "#1F3552",       # Box color
+                outlier.colour = "red", # Outliers color
+                alpha = 0.9,width=0.1)+
+  scale_color_brewer(palette="Set1") + 
+  theme_bw()+
+  #Title and axes
+  xlab('Income Category ')+
+  ylab('CO2 consumption per Capita')+
+  labs(color = "Income category")+
+  ggtitle('CO2 consumption per Capita-Income Category')
+
+mean_C02<-dev.inc %>% group_by(income) %>% summarise(mean(CO2.emiss.mtpercap))
+
+ggplot(dev.inc,aes(x=GDP.percap,y=CO2.emiss.mtpercap)) +
+  geom_point(aes(color=income))+
+  geom_rug(color = "#984EA3",alpha=0.2)+
+  geom_smooth(method = 'loess',se=FALSE,color = "#984EA3")+
+  #Plot mean values 
+  geom_hline(aes(yintercept=as.numeric(mean_C02[1,2])),
+              color="#E41A1C", linetype="dashed", size=0.7,alpha=0.7)+
+  geom_hline(aes(yintercept=as.numeric(mean_C02[2,2])),
+             color="#377EB8", linetype="dashed", size=0.7,alpha=0.7)+
+  geom_hline(aes(yintercept=as.numeric(mean_C02[3,2])),
+             color="#4DAF4A", linetype="dashed", size=0.7,alpha=0.7)+
+  #Label outliers
+  geom_text_repel(aes(label= ifelse(GDP.percap > quantile(GDP.percap, 0.97),
+                                    as.character(country),'')),hjust=-0.9,vjust=0,size=3)+
+  geom_text_repel(aes(label= ifelse(CO2.emiss.mtpercap > quantile(CO2.emiss.mtpercap, 0.97),
+                                    as.character(country),'')),hjust=0.9,vjust=0.2,size=3)+
+  #Legend position and Axis and fond size customization
+  theme_bw()+
+  theme(legend.position = 'top',
+        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 6),
+        legend.key.size = unit(0.2, "cm"),
+        plot.title = element_text(size = 9),
+        text = element_text(size = 9),
+        axis.line = element_line(colour = "black",size = 0.25))+
+  #Color customization 
+  scale_color_brewer(palette="Set1") +
+  scale_x_continuous(labels=scales::dollar_format())+
+  #Title and axes
+  xlab('GDP per capita')+
+  ylab('CO2 emissions (metric tons per capita)')+
+  labs(color = "Income category")+
+  ggtitle('CO2 emissions vs GDP per Capita and Income Category')
+```
+### Unemployement by gender
+
+The following graphs show the unemployment rates for each gender in each country and region. In some countries, we observe a high inequality between genders, especially in United Arab Emirates, Saudi Arabia, and Bahrain etc. In general, unemployment rates for women are higher than those for men. The second graph, confirms that indeed, in the Middle East & North Africa, unemployment rate for females is significantly higher than it is for men. In addition, in Europe and Central Asia, there is some inequality between the two genders favouring the males. In East Asia and the Pacific, the rates for each gender are almost the same. In all regions, the female unemployment rate is higher except for North America where it seems the opposite is happening.
+```{r,Fig12,echo=FALSE,fig.align='center',fig.cap="\\label{fig:fig12} Unemployement by gender for each countiry and region"}
+##Unemployment per country per gender
+Unemployment.countries<-dev.inc %>% 
+  select(country,Unemployment.female,Unemployment.male)
+colnames(Unemployment.countries)<-c('country','Female', 'Male')
+Unemployment.countries$Male<-Unemployment.countries$Male*-1
+
+Unemployment.countries %>% 
+  melt(id='country') %>% 
+  ggplot(aes(y = value, x = country, fill = variable))+
+  #Bars
+  geom_bar(stat = "identity", width = .6)+
+  scale_y_continuous()+
+  #Legend position and Axis and fond size customization 
+  theme_bw()+
+  theme(text = element_text(size = 9),
+        axis.line = element_line(colour = "black",size = 0.25))+
+   #Color customization 
+   scale_fill_brewer(palette="Set1")+
+  #Title and axes
+  xlab('')+
+  ylab('Unemployment rate(%)')+
+  labs(color = "Income category")+
+  ggtitle('Unemployment by gender for each country')+
+  #Flip coordinates
+  coord_flip()
+
+##Unemployment per region
+Unemployment.region<-dev.inc %>% 
+  select(region,Unemployment.female,Unemployment.male)
+colnames(Unemployment.region)<-c('region','Female', 'Male')
+
+Unemployment.region %>% 
+  group_by(region) %>%
+  summarise(Female=max(Female),Male=-max(Male)) %>% 
+  melt(id='region') %>% 
+  ggplot(aes(y = value, x = region, fill = variable)) +   # Fill column
+  geom_bar(stat = "identity", width = .6) +   # draw the bars
+  scale_y_continuous()+
+  #Legend position and Axis and fond size customization 
+  theme(text = element_text(size = 10),
+        axis.line = element_line(colour = "black",size = 0.25))+
+  theme_bw()+
+   #Color customization 
+   scale_fill_brewer(palette="Set1")+
+  #Title and axes
+  xlab('')+
+  ylab('Unemployment rate(%)')+
+  labs(color = "Income category")+
+  ggtitle('Unemployment by gender for each region')+
+  #Flip coordinates
+  coord_flip() # Flip axes
+
+```
+The maps show the unemployment rate by gender globally, for each country.
+```{r,,Fig13,echo=FALSE,fig.align='center'}
+##Unemployment map
+mybins_unemployment<-seq(0, 30,5)
+mypalette_unemployment <- colorBin( palette="OrRd", domain=join.coord$Unemployment.female, na.color="transparent", 
+                                    bins=mybins_unemployment)
+##Unemployment map
+leaflet(my_spdf) %>% addTiles()  %>% 
+  setView(lat=10, lng=0 , zoom=2) %>%
+  addPolygons( 
+    fillColor = ~mypalette_unemployment(join.coord$Unemployment.female), 
+    stroke=TRUE, 
+    fillOpacity = 0.9, 
+    color="white", 
+    weight=0.3) %>% 
+  addLegend( 
+    pal=mypalette_unemployment, 
+    values=~join.coord$Unemployment.female, 
+    opacity=0.9, title = "Unemployement (F)",
+    labFormat = labelFormat(suffix="%"),
+    position = "bottomleft")
+
+mypalette_unemployment <- colorBin( palette="OrRd", domain=join.coord$Unemployment.male, na.color="transparent", 
+                                    bins=mybins_unemployment)
+##Unemployment map
+leaflet(my_spdf) %>% addTiles()  %>% 
+  setView(lat=10, lng=0 , zoom=2) %>%
+  addPolygons( 
+    fillColor = ~mypalette_unemployment(join.coord$Unemployment.male), 
+    stroke=TRUE, 
+    fillOpacity = 0.9, 
+    color="white", 
+    weight=0.3) %>% 
+  addLegend( 
+    pal=mypalette_unemployment, 
+    values=~join.coord$Unemployment.male,
+    labFormat = labelFormat(suffix="%"),
+    opacity=0.9, title = "Unemployement (M)", 
+    position = "bottomleft" )
+```
+The figure below shows the unemployment rate by gender for each income category. For all income categories, the unemployment rate for females is higher than for males. The highest difference can be observed in countries classified as lower middle income and the lowest difference can be seen in the upper-middle-income category.
+```{r, Fig14,echo=FALSE,fig.align='center',fig.cap="\\label{fig:fig14} Unemployement by gender for each income category"}
+##Unemployment per income category
+Unemployment.income<-dev.inc %>% 
+  select(income,Unemployment.female,Unemployment.male)
+colnames(Unemployment.income)<-c('income','Female', 'Male')
+
+Unemployment.income %>% 
+  group_by(income) %>%
+  summarise(Female=max(Female),Male=-max(Male)) %>% 
+  melt(id='income') %>% 
+  ggplot(aes(y = value, x = income, fill = variable)) +   # Fill column
+  geom_bar(stat = "identity", width = .6) +   # draw the bars
+  scale_y_continuous()+
+  coord_flip() +  # Flip axes
+  labs(title="Unemployment per income category") +
+  theme_bw()+
+  theme(plot.title = element_text(hjust = .5), 
+        axis.ticks = element_blank()) + # Center plot title
+  scale_fill_brewer(palette = "Set1")  # Color palette
+```
+
+The figure below shows the relationship between the unemployment rate for each gender and GDP per capita for each income category. The colour of each point describes the income category, and the black dashed line shows the mean value of the unemployment rate for each gender. What stands out first in this graph, is the difference in mean values, where the mean unemployment rate for females is higher than for males. We can also see that the two trending lines follow the same trend for both genders, suggesting that as GDP increases, the rate decreases. However, the employment rate for males doesn't seem to be affected by GDP per capita as much since it's almost straight. Moreover, the trend line in the plot that represents females displays an increase, but the points seem to be in the same range. Finally, countries in the upper and lower-middle categories, with some exceptions, have the highest unemployment rates. It is surprising to see that some counties in the higher income category have the same unemployment rate as countries in the upper and lower-middle categories.
+
+```{r, Fig15,echo=FALSE,fig.align='center',fig.cap="\\label{fig:fig15} Unemployement by gender for each income category and GDP"}
+##Unemployment and GDP
+df<-dev.inc %>% select(income,GDP.percap,Unemployment.female,Unemployment.male,country) %>% 
+  melt(id=c('income','GDP.percap','country'))
+
+df$variable<-gsub("Unemployment.", "", df$variable)
+names(df)[names(df) == 'variable'] <- 'Gender'
+names(df)[names(df) == 'value'] <- 'Unemployment'
+
+mean.un<-data.frame(Gender = c("female", "male"), 
+                    means = c(mean(dev.inc$Unemployment.female), mean(dev.inc$Unemployment.male)))
+
+ggplot(df,aes(x=GDP.percap,y=Unemployment)) +
+  geom_point(aes(color=income))+
+  geom_smooth(method = 'loess',se=FALSE,color = "#984EA3")+
+  geom_hline(data=mean.un,aes(yintercept = means),
+             color="black", linetype="dashed", size=0.7,alpha=0.7)+
+  #Label outliers
+  geom_text_repel(aes(label= ifelse(GDP.percap > quantile(GDP.percap, 0.95),
+                              as.character(country),'')),hjust=0,vjust=0.5,size=2.5)+
+  geom_text_repel(aes(label= ifelse(Unemployment > quantile(Unemployment, 0.95),
+                              as.character(country),'')),hjust=0,vjust=1,size=2.5)+
+  geom_rug(color = "#984EA3",alpha=0.2,sides="b")+
+  #Legend position and Axis and fond size customization
+  theme_bw()+
+  theme(legend.position = 'top',
+        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 5),
+        legend.key.size = unit(0.2, "cm"),
+        text = element_text(size = 9),
+        plot.title = element_text(size = 9),
+        axis.line = element_line(colour = "black",size = 0.25))+
+  #Color customization 
+  scale_color_brewer(palette="Set1") +
+  facet_wrap(~Gender)+
+  scale_x_continuous(labels=scales::dollar_format())+
+  #Title and axes
+  xlab('GDP per capita')+
+  ylab('Unemployment rate(%)')+
+  labs(color = "Income category")+
+  ggtitle('Unemployment by gender vs GDP per Capita')
+```
+### Life expectancy by gender
+
+The first graph below shows life expectancy by gender for each country. It can be seen that for the majority of countries, life expectancy for both genders is above 50 years. The second graph shows life expectancy by gender for each region. We can observe that the life expectancy for males is higher than 75, apart from in Sub-Saharan Africa and South Asia, where it's close to 65. In almost all regions, female life expectancy is higher than males . Finally, the last graph shows life expectancy by gender for each income category. There isn't a significant difference between the categories, and again, life expectancy is higher for females.
+```{r,Fig16,echo=FALSE,fig.align='center',fig.cap="\\label{fig:fig16} Life expectancy by gender"}
+###Life expectancy by gender
+#Maximum and minimum age by gender
+dev.inc %>% 
+  select(Life.Expect.female,Life.Expect.male) %>% 
+  summary %>% 
+  knitr::kable("html")%>%
+  kableExtra::kable_styling(latex_options = "hold_position")
+
+#Create dataframe
+life.exp_countries<-dev.inc %>% 
+  select(country,Life.Expect.female,Life.Expect.male)
+colnames(life.exp_countries)<-c('country','Female', 'Male')
+life.exp_countries$Male<-life.exp_countries$Male*-1
+
+# X Axis Breaks and Labels 
+brks <- seq(-90, 90, 15)
+lbls = paste0(as.character(c(seq(90, 0, -15), seq(15, 90, 15))))
+
+life.exp_countries %>% 
+  melt(id='country') %>% 
+  ggplot(aes(y = value, x = country, fill = variable)) +   # Fill column
+  geom_bar(stat = "identity", width = .2) + 
+  scale_y_continuous(breaks = brks,   # Breaks
+                     labels = lbls) + # draw the bars
+  # Theme customization/Center plot title
+  theme(plot.title = element_text(hjust = .5), 
+        axis.ticks = element_blank()) + 
+  theme_bw()+
+  #Legend position and Axis and fond size customization 
+  theme(text = element_text(size = 10),
+        axis.line = element_line(colour = "black",size = 0.25))+
+   #Color customization 
+   scale_fill_brewer(palette="Set1")+
+  #Title and axes
+    xlab('')+
+    ylab('Life expectancy(Years)')+
+    labs(color = "Income category")+
+    ggtitle('Life expectancy for each country')+
+  #Flip coordinates
+    coord_flip() # Flip axes
+
+life.exp_region<-dev.inc %>% 
+  select(region,Life.Expect.female,Life.Expect.male)
+colnames(life.exp_region)<-c('region','Female', 'Male')
+
+life.exp_region %>% 
+  group_by(region) %>%
+  summarise(Female=max(Female),Male=-max(Male)) %>% 
+  melt(id='region') %>% 
+  ggplot(aes(y = value, x = region, fill = variable)) +   # Fill column
+  geom_bar(stat = "identity", width = .6) +   # draw the bars
+  scale_y_continuous(breaks = brks,   # Breaks
+                     labels = lbls) +
+  #Legend position and Axis and fond size customization 
+  theme(text = element_text(size = 10),
+        axis.line = element_line(colour = "black",size = 0.25))+
+  theme_bw()+
+   #Color customization 
+   scale_fill_brewer(palette="Set1")+
+  #Title and axes
+    xlab('')+
+    ylab('Life expectancy(Years)')+
+    labs(color = "Income category")+
+    ggtitle('Life expectancy for each region')+
+  #Flip coordinates
+    coord_flip() # Flip axes
+
+##Life expectancy per income category
+life.income<-dev.inc %>% 
+  select(income,Life.Expect.female,Life.Expect.male)
+colnames(life.income)<-c('income','Female', 'Male')
+
+life.income %>% 
+  group_by(income) %>%
+  summarise(Female=max(Female),Male=-max(Male)) %>% 
+  melt(id='income') %>% 
+  ggplot(aes(y = value, x = income, fill = variable)) +   # Fill column
+  geom_bar(stat = "identity", width = .6) +   # draw the bars
+  scale_y_continuous(breaks = brks,   # Breaks
+                     labels = lbls) +
+  #Legend position and Axis and fond size customization 
+  theme(text = element_text(size = 10),
+        axis.line = element_line(colour = "black",size = 0.25))+
+  theme_bw()+
+   #Color customization 
+   scale_fill_brewer(palette="Set1")+
+  #Title and axes
+    xlab('')+
+    ylab('Life expectancy(Years)')+
+    labs(color = "Income category")+
+    ggtitle('Life expectancy for each income category')+
+  #Flip coordinates
+    coord_flip() # Flip axes
+
+```
+
+The graph shows the relationship between life expectancy for each gender and GDP per capita. The colour of each point depends on the market capitalisation percentage, and the two black dashed lines indicate the mean life expectancy of each gender. We observe that the two variables have a curvilinear relationship where when GDP per capita increases, life expectancy also increases, but at a different rate. In the beginning, it rises at a rapid rate, and then, beyond a point, the line flattens out. Life expectancy for males is lower in almost all countries than it is for women, which is shown by the lower mean value as well. We can also see that life expectancy increases in accordance with market capitalisation. The only exception is South Africa, where market capitalisation reached 300%. The life expectancy for women and men is approximately 68 and 60, respectively. 
+```{r,Fig17,echo=FALSE,fig.align='center',fig.cap="\\label{fig:fig17} GDP and Life expevtancy for women "}
+##Life expectancy and GDP
+gdp.life<-dev.inc %>% select(Market.Cap.pcntGDP,GDP.percap,Life.Expect.female,Life.Expect.male,country) %>% 
+  melt(id=c('Market.Cap.pcntGDP','GDP.percap','country'))
+
+gdp.life$variable<-gsub("Life.Expect.", "", gdp.life$variable)
+names(gdp.life)[names(gdp.life) == 'variable'] <- 'Gender'
+names(gdp.life)[names(gdp.life) == 'value'] <- 'LifeExpectancy'
+
+mean.life<-data.frame(Gender = c("female", "male"), means = c(mean(dev.inc$Life.Expect.female), mean(dev.inc$Life.Expect.male)))
+
+ggplot(gdp.life,aes(x=GDP.percap,y=LifeExpectancy)) +
+  geom_point(aes(color=Market.Cap.pcntGDP))+
+  geom_smooth(method = 'loess',se=FALSE,color = "#984EA3")+
+  geom_hline(data=mean.life,aes(yintercept = means),
+             color="black", linetype="dashed", size=0.7,alpha=0.7)+
+  #Label outliers
+  geom_text_repel(aes(label= ifelse(LifeExpectancy < quantile(LifeExpectancy, 0.07),
+                              as.character(country),'')),hjust=-0.5,vjust=0.5,size=3)+
+  geom_text_repel(aes(label= ifelse(GDP.percap >quantile(GDP.percap, 0.97),
+                                    as.character(country),'')),hjust=0,vjust=0.5,size=3)+
+  #Legend position and Axis and fond size customization
+  theme_bw()+
+  theme(legend.title = element_text(size = 8), 
+        legend.text = element_text(size = 7),
+        legend.key.size = unit(0.6, "cm"),
+        plot.title = element_text(size = 9),
+        text = element_text(size = 9),
+        axis.line = element_line(colour = "black",size = 0.25))+
+  #Color customization 
+  scale_colour_gradient(labels= function(x) paste0(x, "%"))+
+  #scale_color_brewer(palette="Set1") +
+  facet_wrap(~Gender)+
+  scale_x_continuous(labels=scales::dollar_format())+
+  #Title and axes
+  xlab('GDP per capita')+
+  ylab('Life expectancy (years)')+
+  labs(color = "Market Cap")+
+  ggtitle('Life expectancy by gender-GDP per Capita and Market capitalization')
+```
+
+### Mortality
+
+The graph shows the relationship between female life expectancy, the mortality rate, and access to electricity. The colour of the points indicates the electricity access percentage, and the two dashed lines show the mean value of life expectancy and mortality. As we mentioned above, those variables are highly correlated and, indeed, we can observe an almost negative linear relationship. Most of the countries are gathered around the top left of the graph, and only a few points are scattered away. Thus, the mean value for female expectancy is around 80 years old, and the mean mortality is equal to 13 deaths per 1000 live births. We can also see that as the mortality rate increases, access to electricity decreases steadily. 
+```{r ,Fig18,echo=FALSE,fig.align='center',fig.cap="\\label{fig:fig18} Moratlity rate"}
+#Mortality-Life expectancy-Access to electricity
+ggplot(dev.inc,aes(x=Mortality.u5,y=Life.Expect.female)) +
+  geom_point(aes(color=Access2Elec.pcnt))+
+  geom_smooth(method = 'loess',se=FALSE,color = "#984EA3")+
+  #Label outliers
+  geom_text_repel(aes(label= ifelse(Mortality.u5 > quantile(Mortality.u5, 0.95),
+                                    as.character(country),'')),hjust=1,vjust=0,size=2.5)+
+  geom_hline(aes(yintercept=mean(Life.Expect.female)),
+             color="purple", linetype="dashed", size=0.7,alpha=0.7)+
+  geom_vline(aes(xintercept=mean(Mortality.u5)),
+             color="orange", linetype="dashed", size=0.7,alpha=0.7)+
+  geom_rug(color = "#984EA3",alpha=0.4)+
+  #Legend position and Axis and fond size customization
+  theme_bw()+
+  theme(legend.position = c(0.9, 0.7),
+        legend.title = element_text(size = 9), 
+        legend.text = element_text(size = 7),
+        legend.key.size = unit(0.6, "cm"),
+        text = element_text(size = 9),
+        axis.line = element_line(colour = "black",size = 0.25))+
+  scale_colour_gradient2(low = muted("red"),
+                         mid = "yellow",
+                         high = muted("blue"),
+                         midpoint = 70,
+                         limits = c(50, 100),
+                         labels= function(x) paste0(x, "%"))+
+  #Title and axes
+  xlab('Mortality rate (per 1,000 live births)')+
+  ylab('Life expectancy (years)')+
+  labs(color = "Access \nto Electricity")+
+  ggtitle('Female Life expectancy vs Mortality and Access to Electricity')
+```
+The next map shows the mortality rate which is the deaths under 5 years per 1000 live births in each country.
+
+```{r ,Fig19,echo=FALSE,fig.align='center'}
+#Mortality
+mybins.mort<-seq(0, 125,25)
+mypalette.mort <- colorBin( palette="Greys", domain=join.coord$Mortality.u5, na.color="transparent", bins=mybins.mort)
+
+leaflet(my_spdf) %>% addTiles()  %>% 
+  setView(lat=10, lng=0 , zoom=2) %>%
+  addPolygons( 
+    fillColor = ~mypalette.mort(join.coord$Mortality.u5), 
+    stroke=TRUE, 
+    fillOpacity = 0.9, 
+    color="white", 
+    weight=0.3) %>% 
+  addLegend(pal = mypalette.mort,
+            values=~join.coord$Mortality.u5,
+            opacity=0.9, title = "Mortality per 1,000 live births ", 
+            position = "bottomleft")
+```
+
+### Access to electricity Map
+
+```{r Fig20,echo=FALSE,fig.align='center'}
+#Arable.Land.pcnt
+mybins_elec<-seq(0,50,10)
+mypalette_elec <- colorBin(palette="Purple", domain=join.coord$Access2Elec.pcnt, na.color="transparent", 
+                                    bins=mybins_elec)
+##Arable.Land
+leaflet(my_spdf) %>% addTiles()  %>% 
+  setView(lat=10, lng=0 , zoom=2) %>%
+  addPolygons( 
+    fillColor = ~mypalette_elec(join.coord$Access2Elec.pcnt), 
+    stroke=TRUE, 
+    fillOpacity = 0.9, 
+    color="white", 
+    weight=0.3) %>% 
+  addLegend( 
+    pal=mypalette_elec, 
+    values=~join.coord$Access2Elec.pcnt, 
+    opacity=0.9, title = "Access to Electricity (%)", 
+    position = "bottomleft" )
+```
+The plot below shows only countries with Access to Electricity less than 100%.We can see that all countries are categorised as either lower or upper middle income. 
+```{r}
+dev.inc %>% 
+  select(country,income,GDP.percap,Access2Elec.pcnt) %>% 
+  filter(Access2Elec.pcnt<99) %>% 
+  ggplot(aes(x=GDP.percap,y=Access2Elec.pcnt,color=income))+
+  geom_point(alpha=0.8)+
+  geom_text_repel(aes(label= ifelse(Access2Elec.pcnt < 99,
+                                    as.character(country),'')),hjust=0,vjust=0.5,size=2.5)+
+  #Theme customization
+  theme_bw()+
+  theme(legend.position =c(0.8,0.15),
+        axis.line = element_line(colour = "black",size = 0.25),
+        text = element_text(size = 8))+
+  scale_color_brewer(palette = 'Set1')+
+  scale_x_continuous(labels = function(x) paste0(x,"$"),breaks =seq (0,15000,2500))+
+  scale_y_continuous(labels = function(x) paste0(x,"%"))+
+  xlab("GDP per capita")+
+  ylab("Access to electricity")+
+  ggtitle("Access to Electricity and GDP per capita")
+  
+
+```
+
+### Arable Land Map 
+
+```{r Fig21,echo=FALSE,fig.align='center'}
+#Arable.Land.pcnt
+mybins_arable<-seq(0,60,10)
+mypalette_arable <- colorBin( palette="Greens", domain=join.coord$Arable.Land.pcnt, na.color="transparent", 
+                              bins=mybins_arable)
+##Arable.Land
+map_arable<-leaflet(my_spdf) %>% addTiles()  %>% 
+  setView(lat=10, lng=0 , zoom=2) %>%
+  addPolygons( 
+    fillColor = ~mypalette_arable(join.coord$Arable.Land.pcnt), 
+    stroke=TRUE, 
+    fillOpacity = 0.9, 
+    color="white", 
+    weight=0.3) %>% 
+  addLegend( 
+    pal=mypalette_arable, 
+    values=~join.coord$Arable.Land.pcnt, 
+    opacity=0.9, title = "Arable Land (%)",
+    labFormat = labelFormat(suffix="%"),
+    position = "bottomleft" )
+map_arable
+```
+### Education expenditure Map
+
+```{r Fig22,echo=FALSE,fig.align='center'}
+#Education Expenditure
+mybins_edu<-seq(0,10,2.5)
+mypalette_edu <- colorBin( palette="Spectral", domain=data.ed$Education.Expend, na.color="transparent", 
+                              bins=mybins_edu)
+leaflet(my_spdf) %>% addTiles()  %>% 
+  setView(lat=10, lng=0 , zoom=1) %>%
+  addPolygons( 
+    fillColor = ~mypalette_edu(data.ed$Education.Expend), 
+    stroke=TRUE, 
+    fillOpacity = 0.9, 
+    color="white", 
+    weight=0.3) %>% 
+  addLegend( 
+    pal=mypalette_edu, 
+    values=~data.ed$Education.Expend, 
+    opacity=0.9, title = "Education Exp.(%)", 
+    position = "bottomleft" )
+```
+
