@@ -307,7 +307,9 @@ ggplot(ed.exp,aes(x=Education.Expend))+
   xlab('Government expenditure on education(% of GDP)')+
   ggtitle('Education Expenditure Histogram')+coord_flip()
 ```
+
 ## Multivariate Analysis
+
 The figure below is visual representation of the multivariate correlation structure and their significance levels. The heatmap shows the pairwise Pearson correlation coefficients between the variables. The variables which do not have a significant correlation are left blank. We observe that:
 
 * Mortality has a very high negative correlation with access to electricity and lives expectancy of both genders.
