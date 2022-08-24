@@ -14,6 +14,8 @@ Development Indicators 2017-Part 1
         Analysis</a>
         -   <a href="#income-categories" id="toc-income-categories">Income
             Categories</a>
+        -   <a href="#unemployement-by-gender"
+            id="toc-unemployement-by-gender">Unemployement by gender</a>
         -   <a href="#mortality" id="toc-mortality">Mortality</a>
         -   <a href="#access-to-electricity-map"
             id="toc-access-to-electricity-map">Access to electricity Map</a>
@@ -719,7 +721,8 @@ rate.
     ## `geom_smooth()` using formula 'y ~ x'
 
 <img src="Development-Indicators-2017-Visualisation-Report_files/figure-gfm/unnamed-chunk-10-2.png" style="display: block; margin: auto;" />
-\### Unemployement by gender
+
+### Unemployement by gender
 
 The following graphs show the unemployment rates for each gender in each
 country and region. In some countries, we observe a high inequality
