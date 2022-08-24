@@ -510,6 +510,7 @@ ggplot(dev.inc,aes(x=GDP.percap,y=CO2.emiss.mtpercap)) +
   labs(color = "Income category")+
   ggtitle('CO2 emissions vs GDP per Capita and Income Category')
 ```
+
 ### Unemployement by gender
 
 The following graphs show the unemployment rates for each gender in each country and region. In some countries, we observe a high inequality between genders, especially in United Arab Emirates, Saudi Arabia, and Bahrain etc. In general, unemployment rates for women are higher than those for men. The second graph, confirms that indeed, in the Middle East & North Africa, unemployment rate for females is significantly higher than it is for men. In addition, in Europe and Central Asia, there is some inequality between the two genders favouring the males. In East Asia and the Pacific, the rates for each gender are almost the same. In all regions, the female unemployment rate is higher except for North America where it seems the opposite is happening.
