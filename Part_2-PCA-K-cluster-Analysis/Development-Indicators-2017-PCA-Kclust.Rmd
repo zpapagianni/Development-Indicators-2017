@@ -1,0 +1,269 @@
+---
+title: "Development Indicators 2017-Part 2 "
+subtitle: "Principal Compoment Analysis and K-Clustering"
+output: 
+  html_document:
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.pos = 'H')
+knitr::opts_chunk$set(fig.align = 'center')
+library(dplyr)
+library(irlba)
+library(ggplot2)
+library(ggpubr)
+library(tidyverse)
+library(reshape2)
+library(caret)
+library(Metrics)
+library(gridExtra)
+library(corrplot)
+library(PerformanceAnalytics)
+library(ggmap)
+library(maps)
+library(leaflet)
+library(naniar)
+library(RColorBrewer)
+library(rgdal)
+library(ggcorrplot)
+library(factoextra)
+library(scales)
+library(ggrepel)
+library(GGally)
+library(stats)
+
+#Set seed to replicate results
+set.seed(9)
+#Load data
+dev.inc<- read_csv("data.csv") 
+dev.inc<-dev.inc %>%select(-Education.Expend)
+num.data<-dev.inc %>% 
+  select_if(is.numeric)
+```
+
+# Clustering
+
+The observations within our data are categorised by income and the region they belong to. The observations belonging to the same categories seem to present similar patterns and share a similar marginal distribution, apart from access to Electricity. To identify the possible set of subgroups, we’re going to reduce the dimension of our dataset to assist in finding any clustering behaviour that is less apparent in high dimensions. Moreover, we're going to test K-means clustering, which is another method often used for splitting a dataset into a set of n groups.
+
+First, we're going to generate a two-dimensional visualization using generalised pairs plot for our data and density estimation using contour plots. We can't see any apparent subgroups from the output. 
+```{r,Fig23,echo=FALSE,fig.align='center',fig.cap="\\label{fig:fig23} Income Categories"}
+#Pairwise visualisation
+num.data %>% select(-Access2Elec.pcnt,-Arable.Land.pcnt) %>%  
+  ggpairs(progress = FALSE, # suppress verbose progress bar output
+          lower = list(continuous = 'density'))
+```
+## Principal Compoment Analysis
+As a first step, we standardize the data scale, implement PCA, and get the corresponding eigenvalues of each PC. If our data is well suited for PCA we should be able to discard these components while retaining at least 80% of the cumulative variance. The cumulative variance of the two first principals is equal to 61.4%, as shown in the results below.
+
+```{r,echo=TRUE}
+# Compute data with principal components ------------------
+pca_devinc <- prcomp(num.data, center = TRUE, scale. = TRUE)  # compute principal components
+#Create dataframe with the two first principal components 
+df_pc<-data.frame(PC1=pca_devinc$x[,1],PC2=pca_devinc$x[,2],income=dev.inc$income,region=dev.inc$region)
+#Create dataframe with the 4 first principal components to use for k-clustering
+pc_clust<-data.frame(PC1=pca_devinc$x[,1],PC2=pca_devinc$x[,2],PC3=pca_devinc$x[,3],PC4=pca_devinc$x[,4])
+#Cumulative proportion
+cumsum_evalues <- cumsum(pca_devinc$sdev^2)
+sum_evalues <- sum(pca_devinc$sdev^2)
+#Print results
+cat("Proportion of variance across top k PCs:",cumsum_evalues/sum_evalues,"\n")
+```
+Next we're going to visualise the results.The scree plot in the center shows that the first 4 components explain more than 0.1 of the variances. As a result, if we want to reduce dimensionality by losing only a small proportion of variance, we should choose the first 4 PCs, which account for 85.2% of the proportion of variance.
+```{r,Fig24,echo=FALSE,fig.align='center',fig.cap="\\label{fig:fig24} Income Categories"}
+#Proportion of variance explained by top k PCs plot
+ggplot(data = data.frame(index=1:10,var_prop=(cumsum_evalues/sum_evalues)*100),
+       hjust=0.9,vjust=0.2,size=3) +
+  geom_point(mapping = aes(x=index,y=var_prop)) + 
+  geom_line(mapping = aes(x=index,y=var_prop))+
+  geom_text(mapping = aes(x=index,y=var_prop, label= round(var_prop,1)),hjust=0.5,vjust=1.5,size=3)+
+  #Limits and scale
+  scale_x_continuous(breaks = seq(1,10))+
+  scale_y_continuous(limits=c(0,100),breaks = seq(0,100,10),labels= function(x) paste0(x, "%"))+
+  #Theme customization
+  theme_bw()+
+  theme(legend.position = c(0.85, 0.9),
+        legend.title = element_text(size = 10), 
+        legend.text = element_text(size = 10),
+        legend.key.size = unit(0.2, "cm"),
+        plot.title = element_text(size = 10),
+        text = element_text(size = 10),
+        axis.line = element_line(colour = "black",size = 0.25))+
+  #Axis and plot title
+  ggtitle("PCA:Proportion of variance explained by top 10 PCs") +
+  ylab("Proportion of variance") + 
+  xlab("Principal components")
+
+#Screeplot with eigenvalues
+var_explained_df <- data.frame(PC= seq(1:10),
+                               var_explained=(pca_devinc$sdev)^2/sum((pca_devinc$sdev)^2))
+
+var_explained_df %>%
+  ggplot(aes(x=PC,y=var_explained))+
+  geom_point()+
+  geom_line()+
+  theme_bw()+
+  theme(plot.title = element_text(size = 10),
+        text = element_text(size = 10),
+        axis.line = element_line(colour = "black",size = 0.25))+
+  scale_x_continuous(breaks = 1:10)+
+  ggtitle("Scree plot: PCA on scaled data")+
+  xlab("Principal Component") + 
+  ylab("Variance Explained")
+```
+The below graph depicts the projection in two dimensions and groupings based on the income category provided in the original dataset. The graph on the left is organized by region, and we can see there are no subgroups within the observations. The graph on the right is organized by income. We can see that the upper middle income and high-income categories are overlapping, and thus we can distinguish only two subgroups. We may need to use more principal components in order to achieve better clustering since the first two PCs account for a small portion of the variance.
+```{r,Fig25,echo=FALSE,fig.align='center',fig.cap="\\label{fig:fig25} Income Categories"}
+ggplot(df_pc, aes(PC1, PC2, col=region)) + 
+  geom_point(size=2) +   # draw points
+  coord_cartesian(xlim = 1.2 * c(min(df_pc$PC1), max(df_pc$PC1)), 
+                  ylim = 1.2 * c(min(df_pc$PC2), max(df_pc$PC2))) +
+  theme_bw()+
+  theme(legend.position =c(0.8,0.8),
+        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 5),
+        legend.key.size = unit(0.2, "cm"),
+        plot.title = element_text(size = 9),
+        text = element_text(size = 9),
+        axis.line = element_line(colour = "black",size = 0.25))+
+  scale_color_brewer(palette="Set1")+
+  labs(title="Clustering behavior", 
+       color = "Region")+
+  xlab(paste0('PC1(',round(cumsum_evalues[2]*10,1), "%)"))+
+  ylab(paste0('PC1(',round(cumsum_evalues[1]*10,1), "%)"))
+
+ggplot(df_pc, aes(PC1, PC2, col=income)) + 
+  geom_point(size=2) +   # draw points
+  labs(title="Clustering behavior", 
+       color = "Income category") + 
+  coord_cartesian(xlim = 1.2 * c(min(df_pc$PC1), max(df_pc$PC1)), 
+                  ylim = 1.2 * c(min(df_pc$PC2), max(df_pc$PC2))) +
+  theme_bw()+
+  theme(legend.position =c(0.75,0.8),
+        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 6),
+        legend.key.size = unit(0.1, "cm"),
+        plot.title = element_text(size = 9),
+        text = element_text(size = 9),
+        axis.line = element_line(colour = "black",size = 0.25))+
+  scale_color_brewer(palette="Set1")+
+  xlab(paste0('PC1(',round(cumsum_evalues[2]*10,1), "%)"))+
+  ylab(paste0('PC1(',round(cumsum_evalues[1]*10,1), "%)"))
+
+fviz_pca_ind(pca_devinc, geom.ind = "point", pointshape = 21, 
+             pointsize = 2, 
+             fill.ind = dev.inc$income, 
+             addEllipses = TRUE,
+             palette = 'Set1',
+             label = "var",
+             col.var = "black",
+             repel = TRUE,
+             legend.title = "Income Category") +
+  ggtitle("Clustering behavior:2D PCA-plot") +
+  theme_bw()+
+  theme(legend.position ='top',
+        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 5),
+        plot.title = element_text(size = 9),
+        text = element_text(size = 9),
+        axis.line = element_line(colour = "black",size = 0.25))
+```
+
+## K-means Clustering
+Next we will perform k-means clustering on the original data set. 
+In order to determine the number of clusters, we run the algorithm with for different number of them. Then, we determine the Within Cluster Sum of Squares or WCSS and  for each solution. Based on the values of the WCSS and an approach known as the Elbow method, we determine how many clusters we’d like to keep.In this instance, the WSS shows a clear elbow at k=2.
+```{r,echo=TRUE}
+#Best method
+wss<-fviz_nbclust(num.data, kmeans, method = "wss")
+wss
+```
+As a result we conclude that the optimum number of clusters is equal to 2 but out of interest we're going to visualize the results for 2,3 and for clusters. Tables 1–3 show which points from each category are assigned to which clusters.
+```{r,Fig27,echo=FALSE,fig.align='center',fig.cap="\\label{fig:fig27} Income Categories"}
+# plots to compare
+dev.inc_k2 <- kmeans(num.data, centers = 2, nstart = 25)
+dev.inc_k3 <- kmeans(num.data, centers = 3, nstart = 25)
+dev.inc_k4 <- kmeans(num.data, centers = 4, nstart = 25)
+
+p1<-fviz_cluster(dev.inc_k2, geom = "point",
+             palette='Set1',
+             data = num.data,
+             labelsize = 0) + 
+  ggtitle("Number of clusters : k = 2")+
+  theme_bw()+
+  theme(legend.position =c(0.9,0.15),
+        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 6),
+        legend.key.size = unit(0.11, "cm"),
+        plot.title = element_text(size = 9),
+        text = element_text(size = 9),
+        axis.line = element_line(colour = "black",size = 0.25))
+
+p2 <- fviz_cluster(dev.inc_k3,
+                   palette='Set1',
+                   data = num.data,
+                   labelsize = 0) + 
+  ggtitle("Number of clusters : k = 3")+
+  theme_bw()+
+  theme(legend.position =c(0.9,0.15),
+        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 6),
+        legend.key.size = unit(0.11, "cm"),
+        plot.title = element_text(size = 9),
+        text = element_text(size = 9),
+        axis.line = element_line(colour = "black",size = 0.25))
+
+p3 <- fviz_cluster(dev.inc_k4,    
+                   palette='Set1',
+                   data = num.data,
+                   labelsize = 0) + 
+  ggtitle("Number of clusters : k = 4")+
+  theme_bw()+
+  theme(legend.position =c(0.9,0.15),
+        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 6),
+        legend.key.size = unit(0.11, "cm"),
+        plot.title = element_text(size = 9),
+        text = element_text(size = 9),
+        axis.line = element_line(colour = "black",size = 0.25))
+
+grid.arrange(p1, p2, p3, ncol = 3)
+```
+The tables below show which points from each category are assigned to which clusters.
+```{r,echo=FALSE}
+#compare results
+knitr::kable(table(dev.inc_k2$cluster,dev.inc$income), "html")%>%
+  kableExtra::kable_styling(latex_options = "hold_position")
+knitr::kable(table(dev.inc_k3$cluster,dev.inc$income), "html")%>%
+  kableExtra::kable_styling(latex_options = "hold_position")
+knitr::kable(table(dev.inc_k4$cluster,dev.inc$income), "html")%>%
+  kableExtra::kable_styling(latex_options = "hold_position")
+```
+As we can see when k=2, all points are in the first cluster apart from 18 from the high-income category. The same happens when k=3, where again some points from high income are being put in wrong clusters. Finally, we observe that even when k=4, the observations are not grouped correctly. We conclude that there are possibly two cluster in which we can group our observations which is not determined by the income category or region.
+
+## K-means Clustering on PCA data
+In this istance we combine PCA and K-means to segment our data, where we use the scores obtained by the PCA for the fit. First, we need to determine the optimal number of clusters.
+```{r,echo=FALSE}
+#Best method
+wss_pc<-fviz_nbclust(pc_clust, kmeans, method = "wss")
+wss_pc
+```
+In this instance, it seems like the optimal number of clusters is 3.
+
+```{r,echo=FALSE,}
+# plots to compare
+dev.inc_pc <- kmeans(pc_clust, centers = 3, nstart = 25)
+fviz_cluster(dev.inc_pc, geom = "point",
+             palette='Set1',
+             data = num.data,
+             labelsize = 0) + 
+  ggtitle("Number of clusters : k = 2")+
+  theme_bw()+
+  theme(legend.position =c(0.9,0.15),
+        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 6),
+        legend.key.size = unit(0.11, "cm"),
+        plot.title = element_text(size = 9),
+        text = element_text(size = 9),
+        axis.line = element_line(colour = "black",size = 0.25))
+```
+The green cluster is clearly visually separated from the rest. The remaining two clusters are slightly overlapping. The spots where the two overlap are ultimately determined by the third  and fourth component, which is not available on this graph.
