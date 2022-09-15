@@ -6,19 +6,19 @@
 The purpose of this project is to delve into the World Bank's data,available at [https://data.worldbank.org/1], which contains the 2017 values of a selection of 'global development indicators' for 68 countries.The goal of this study is to assess and compare the development indicators of each country, investigate correlations between different indicators, and identify possible homogeneity between countries. This report begins by assessing the data's quality before proceeding to a univariate and multivariate analysis. This will be used to aid in determining any clustering behaviour, which will then be investigated further using various dimension reduction and clustering methods.
 
 The project is divided into two sections:
-* **Part 1:
- * Exploratory data analysis
-   * Structure
-   * Qualtity of Data
- * Exploration of the univariate and multivariate distribution
-   * Univariate Analysis
-   * Multivariate Analysis
-* **Part 2:
- * Cluster Analysis.
-   * Correlation Analysis.
-   * Principal Compoment Analysis.
-   * K-means Clustering.
-   * K-means Clustering on PCA data.
+* **Part 1**:
+   * Exploratory data analysis
+     * Structure
+     * Qualtity of Data
+   * Exploration of the univariate and multivariate distribution
+     * Univariate Analysis
+     * Multivariate Analysis
+* **Part 2**:
+   * Cluster Analysis.
+     * Correlation Analysis.
+     * Principal Compoment Analysis.
+     * K-means Clustering.
+     * K-means Clustering on PCA data.
 
 Here are the important files (the remaining files should be ignored):
 * [Development-Indicators-2017-Visualisation-Report.md](./Part_1-EDA-Visualisation//Development-Indicators-2017-Visualisation-Report.md:: The github markdown document which contain the detailed step of the above analysis.
