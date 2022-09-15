@@ -7,7 +7,7 @@ The purpose of this project is to delve into the World Bank's data,available at 
 
 The project is divided into two sections:
 * Exploratory data analysis
-                Structure
+  * Structure
   Qualtity of Data
 *Exploration of the univariate and multivariate distribution
 _Univariate Analysis
