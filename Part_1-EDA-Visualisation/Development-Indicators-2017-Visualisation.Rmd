@@ -32,6 +32,7 @@ library(factoextra)
 library(scales)
 library(ggrepel)
 library(GGally)
+library(kableExtra)
 
 #Set seed to replicate results
 set.seed(9)
@@ -71,7 +72,9 @@ In particular, the data contains 14 variables:
 Our dataset has 68 observations and 14 variables as mentioned above. The first three variables are characters while the rest of the variables are continuous numeric values. 
 ```{r,echo=TRUE}
 #High-level information
-str(dev.inc)
+kbl(dev.inc) %>%
+  kable_styling() %>%
+  scroll_box(width = "100%", height = "500px")
 ```
 The variables `region` and `income` are categorical and they take only predefined values. Those variables are saved as characters and hence we convert them to factors. We observe that region has 7 levels and income has 3. However the variable `income` is in random order and in order to facilitate our analysis we reorder the levels.  
 ```{r,,echo=FALSE}
@@ -517,6 +520,7 @@ ggplot(dev.inc,aes(x=GDP.percap,y=CO2.emiss.mtpercap)) +
   labs(color = "Income category")+
   ggtitle('CO2 emissions vs GDP per Capita and Income Category')
 ```
+
 ### Unemployement by gender
 
 The following graphs show the unemployment rates for each gender in each country and region. In some countries, we observe a high inequality between genders, especially in United Arab Emirates, Saudi Arabia, and Bahrain etc. In general, unemployment rates for women are higher than those for men. The second graph, confirms that indeed, in the Middle East & North Africa, unemployment rate for females is significantly higher than it is for men. In addition, in Europe and Central Asia, there is some inequality between the two genders favouring the males. In East Asia and the Pacific, the rates for each gender are almost the same. In all regions, the female unemployment rate is higher except for North America where it seems the opposite is happening.
@@ -879,30 +883,10 @@ leaflet(my_spdf) %>% addTiles()  %>%
             position = "bottomleft")
 ```
 
-### Access to electricity Map
+### Access to electricity 
 
-```{r Fig20,echo=FALSE,fig.align='center'}
-#Arable.Land.pcnt
-mybins_elec<-seq(0,50,10)
-mypalette_elec <- colorBin(palette="Purple", domain=join.coord$Access2Elec.pcnt, na.color="transparent", 
-                                    bins=mybins_elec)
-##Arable.Land
-leaflet(my_spdf) %>% addTiles()  %>% 
-  setView(lat=10, lng=0 , zoom=2) %>%
-  addPolygons( 
-    fillColor = ~mypalette_elec(join.coord$Access2Elec.pcnt), 
-    stroke=TRUE, 
-    fillOpacity = 0.9, 
-    color="white", 
-    weight=0.3) %>% 
-  addLegend( 
-    pal=mypalette_elec, 
-    values=~join.coord$Access2Elec.pcnt, 
-    opacity=0.9, title = "Access to Electricity (%)", 
-    position = "bottomleft" )
-```
-The plot below shows only countries with Access to Electricity less than 100%.We can see that all countries are categorised as either lower or upper middle income. 
-```{r}
+The plot below shows only countries with Access to Electricity less than 100%.We can see that all countries are categorized as either lower or upper middle income. 
+```{r,echo=FALSE}
 dev.inc %>% 
   select(country,income,GDP.percap,Access2Elec.pcnt) %>% 
   filter(Access2Elec.pcnt<99) %>% 
@@ -921,7 +905,6 @@ dev.inc %>%
   xlab("GDP per capita")+
   ylab("Access to electricity")+
   ggtitle("Access to Electricity and GDP per capita")
-  
 
 ```
 
@@ -967,7 +950,9 @@ leaflet(my_spdf) %>% addTiles()  %>%
   addLegend( 
     pal=mypalette_edu, 
     values=~data.ed$Education.Expend, 
-    opacity=0.9, title = "Education Exp.(%)", 
+    opacity=0.9, title = "Education Exp.(%of GDP)",
+    labFormat = labelFormat(suffix="%"),
     position = "bottomleft" )
 ```
 
+In the next part we're going determine any clustering behaviour, which will then be investigated further using various dimension reduction and clustering methods.
