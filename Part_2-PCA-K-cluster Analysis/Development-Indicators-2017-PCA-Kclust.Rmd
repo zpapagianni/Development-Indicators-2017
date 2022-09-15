@@ -1,7 +1,9 @@
 ---
 title: "Development Indicators 2017-Part 2 "
 subtitle: "Principal Compoment Analysis and K-Clustering"
-output: html_document
+output: 
+  html_document:
+    toc: true
 ---
 
 ```{r setup, include=FALSE}
