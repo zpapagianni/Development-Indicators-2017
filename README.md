@@ -8,15 +8,15 @@ The purpose of this project is to delve into the World Bank's data,available at 
 The project is divided into two sections:
 * Exploratory data analysis
   * Structure
-  Qualtity of Data
-*Exploration of the univariate and multivariate distribution
-_Univariate Analysis
-_Multivariate Analysis
+  * Qualtity of Data
+* Exploration of the univariate and multivariate distribution
+  * Univariate Analysis
+  * Multivariate Analysis
 * Cluster Analysis.
-_ Correlation Analysis.
-_ Principal Compoment Analysis.
-_ K-means Clustering.
-_ K-means Clustering on PCA data.
+  * Correlation Analysis.
+  * Principal Compoment Analysis.
+  * K-means Clustering.
+  * K-means Clustering on PCA data.
 
 Here are the important files (the remaining files should be ignored):
 * [Development-Indicators-2017-Visualisation-Report.md](./Part_1-EDA-Visualisation//Development-Indicators-2017-Visualisation-Report.md:: The github markdown document which contain the detailed step of the above analysis.
