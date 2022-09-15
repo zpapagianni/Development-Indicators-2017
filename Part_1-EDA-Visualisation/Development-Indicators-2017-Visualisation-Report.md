@@ -10,16 +10,24 @@ Development Indicators 2017-Part 1
         -   <a href="#missing-values" id="toc-missing-values">Missing Values</a>
         -   <a href="#outliers-and-errors" id="toc-outliers-and-errors">Outliers and
             Errors</a>
+-   <a href="#exploration-of-the-univariate-and-multivariate-distribution"
+    id="toc-exploration-of-the-univariate-and-multivariate-distribution">Exploration
+    of the univariate and multivariate distribution</a>
     -   <a href="#univariate-analysis" id="toc-univariate-analysis">Univariate
         Analysis</a>
+    -   <a href="#multivariate-analysis"
+        id="toc-multivariate-analysis">Multivariate Analysis</a>
         -   <a href="#income-categories" id="toc-income-categories">Income
             Categories</a>
+        -   <a href="#co2-and-income" id="toc-co2-and-income">CO2 and income</a>
         -   <a href="#unemployement-by-gender"
             id="toc-unemployement-by-gender">Unemployement by gender</a>
         -   <a href="#mortality" id="toc-mortality">Mortality</a>
         -   <a href="#access-to-electricity-map"
             id="toc-access-to-electricity-map">Access to electricity Map</a>
         -   <a href="#arable-land-map" id="toc-arable-land-map">Arable Land Map</a>
+        -   <a href="#education-expenditure-map"
+            id="toc-education-expenditure-map">Education expenditure Map</a>
 
 # Introduction
 
@@ -56,46 +64,3048 @@ data contains 14 variables:
 Our dataset has 68 observations and 14 variables as mentioned above. The
 first three variables are characters while the rest of the variables are
 continuous numeric values.
-
-``` r
-#High-level information
-str(dev.inc)
-```
-
-    ## spec_tbl_df [68 × 14] (S3: spec_tbl_df/tbl_df/tbl/data.frame)
-    ##  $ country            : chr [1:68] "United Arab Emirates" "Argentina" "Austria" "Australia" ...
-    ##  $ region             : chr [1:68] "Middle East & North Africa" "Latin America & Caribbean" "Europe & Central Asia" "East Asia & Pacific" ...
-    ##  $ income             : chr [1:68] "High income" "Upper middle income" "High income" "High income" ...
-    ##  $ GDP.percap         : num [1:68] 40645 14613 47312 53934 17392 ...
-    ##  $ Market.Cap.pcntGDP : num [1:68] 60.2 16.9 36.2 113.7 67.3 ...
-    ##  $ Unemployment.female: num [1:68] 7.11 9.47 5.03 5.67 8.78 ...
-    ##  $ Unemployment.male  : num [1:68] 1.47 7.53 5.91 5.52 8.47 ...
-    ##  $ Education.Expend   : num [1:68] NA 5.45 5.37 5.13 4.37 ...
-    ##  $ Arable.Land.pcnt   : num [1:68] 0.627 14.324 16.104 3.998 16.279 ...
-    ##  $ Life.Expect.female : num [1:68] 79 79.7 84 84.6 80.3 ...
-    ##  $ Life.Expect.male   : num [1:68] 77 72.9 79.4 80.5 77.6 ...
-    ##  $ Mortality.u5       : num [1:68] 7.2 10.3 3.6 3.8 13.4 34.2 4.1 7.3 15.4 5.2 ...
-    ##  $ CO2.emiss.mtpercap : num [1:68] 21.95 4.09 7.48 15.74 4.19 ...
-    ##  $ Access2Elec.pcnt   : num [1:68] 100 100 100 100 100 88 100 100 99.8 100 ...
-    ##  - attr(*, "spec")=
-    ##   .. cols(
-    ##   ..   country = col_character(),
-    ##   ..   region = col_character(),
-    ##   ..   income = col_character(),
-    ##   ..   GDP.percap = col_double(),
-    ##   ..   Market.Cap.pcntGDP = col_double(),
-    ##   ..   Unemployment.female = col_double(),
-    ##   ..   Unemployment.male = col_double(),
-    ##   ..   Education.Expend = col_double(),
-    ##   ..   Arable.Land.pcnt = col_double(),
-    ##   ..   Life.Expect.female = col_double(),
-    ##   ..   Life.Expect.male = col_double(),
-    ##   ..   Mortality.u5 = col_double(),
-    ##   ..   CO2.emiss.mtpercap = col_double(),
-    ##   ..   Access2Elec.pcnt = col_double()
-    ##   .. )
-    ##  - attr(*, "problems")=<externalptr>
-
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+country
+</th>
+<th style="text-align:left;">
+region
+</th>
+<th style="text-align:left;">
+income
+</th>
+<th style="text-align:right;">
+GDP.percap
+</th>
+<th style="text-align:right;">
+Market.Cap.pcntGDP
+</th>
+<th style="text-align:right;">
+Unemployment.female
+</th>
+<th style="text-align:right;">
+Unemployment.male
+</th>
+<th style="text-align:right;">
+Education.Expend
+</th>
+<th style="text-align:right;">
+Arable.Land.pcnt
+</th>
+<th style="text-align:right;">
+Life.Expect.female
+</th>
+<th style="text-align:right;">
+Life.Expect.male
+</th>
+<th style="text-align:right;">
+Mortality.u5
+</th>
+<th style="text-align:right;">
+CO2.emiss.mtpercap
+</th>
+<th style="text-align:right;">
+Access2Elec.pcnt
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+United Arab Emirates
+</td>
+<td style="text-align:left;">
+Middle East & North Africa
+</td>
+<td style="text-align:left;">
+High income
+</td>
+<td style="text-align:right;">
+40644.791
+</td>
+<td style="text-align:right;">
+60.1920579
+</td>
+<td style="text-align:right;">
+7.111
+</td>
+<td style="text-align:right;">
+1.472000
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.6265841
+</td>
+<td style="text-align:right;">
+79.008
+</td>
+<td style="text-align:right;">
+76.966
+</td>
+<td style="text-align:right;">
+7.2
+</td>
+<td style="text-align:right;">
+21.9506143
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Argentina
+</td>
+<td style="text-align:left;">
+Latin America & Caribbean
+</td>
+<td style="text-align:left;">
+Upper middle income
+</td>
+<td style="text-align:right;">
+14613.042
+</td>
+<td style="text-align:right;">
+16.8948426
+</td>
+<td style="text-align:right;">
+9.473
+</td>
+<td style="text-align:right;">
+7.528000
+</td>
+<td style="text-align:right;">
+5.45432
+</td>
+<td style="text-align:right;">
+14.3238730
+</td>
+<td style="text-align:right;">
+79.726
+</td>
+<td style="text-align:right;">
+72.924
+</td>
+<td style="text-align:right;">
+10.3
+</td>
+<td style="text-align:right;">
+4.0894715
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Austria
+</td>
+<td style="text-align:left;">
+Europe & Central Asia
+</td>
+<td style="text-align:left;">
+High income
+</td>
+<td style="text-align:right;">
+47312.006
+</td>
+<td style="text-align:right;">
+36.1929246
+</td>
+<td style="text-align:right;">
+5.032
+</td>
+<td style="text-align:right;">
+5.912000
+</td>
+<td style="text-align:right;">
+5.37189
+</td>
+<td style="text-align:right;">
+16.1044595
+</td>
+<td style="text-align:right;">
+84.000
+</td>
+<td style="text-align:right;">
+79.400
+</td>
+<td style="text-align:right;">
+3.6
+</td>
+<td style="text-align:right;">
+7.4827515
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Australia
+</td>
+<td style="text-align:left;">
+East Asia & Pacific
+</td>
+<td style="text-align:left;">
+High income
+</td>
+<td style="text-align:right;">
+53934.250
+</td>
+<td style="text-align:right;">
+113.6846991
+</td>
+<td style="text-align:right;">
+5.670
+</td>
+<td style="text-align:right;">
+5.520000
+</td>
+<td style="text-align:right;">
+5.12790
+</td>
+<td style="text-align:right;">
+3.9979095
+</td>
+<td style="text-align:right;">
+84.600
+</td>
+<td style="text-align:right;">
+80.500
+</td>
+<td style="text-align:right;">
+3.8
+</td>
+<td style="text-align:right;">
+15.7386474
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Barbados
+</td>
+<td style="text-align:left;">
+Latin America & Caribbean
+</td>
+<td style="text-align:left;">
+High income
+</td>
+<td style="text-align:right;">
+17391.669
+</td>
+<td style="text-align:right;">
+67.3145842
+</td>
+<td style="text-align:right;">
+8.778
+</td>
+<td style="text-align:right;">
+8.468000
+</td>
+<td style="text-align:right;">
+4.36638
+</td>
+<td style="text-align:right;">
+16.2790698
+</td>
+<td style="text-align:right;">
+80.307
+</td>
+<td style="text-align:right;">
+77.562
+</td>
+<td style="text-align:right;">
+13.4
+</td>
+<td style="text-align:right;">
+4.1924473
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Bangladesh
+</td>
+<td style="text-align:left;">
+South Asia
+</td>
+<td style="text-align:left;">
+Lower middle income
+</td>
+<td style="text-align:right;">
+1563.768
+</td>
+<td style="text-align:right;">
+34.5114059
+</td>
+<td style="text-align:right;">
+6.710
+</td>
+<td style="text-align:right;">
+3.335000
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+59.5938388
+</td>
+<td style="text-align:right;">
+73.978
+</td>
+<td style="text-align:right;">
+70.409
+</td>
+<td style="text-align:right;">
+34.2
+</td>
+<td style="text-align:right;">
+0.4929066
+</td>
+<td style="text-align:right;">
+88.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Belgium
+</td>
+<td style="text-align:left;">
+Europe & Central Asia
+</td>
+<td style="text-align:left;">
+High income
+</td>
+<td style="text-align:right;">
+44089.310
+</td>
+<td style="text-align:right;">
+87.2928335
+</td>
+<td style="text-align:right;">
+7.058
+</td>
+<td style="text-align:right;">
+7.118000
+</td>
+<td style="text-align:right;">
+6.42534
+</td>
+<td style="text-align:right;">
+27.6089828
+</td>
+<td style="text-align:right;">
+83.900
+</td>
+<td style="text-align:right;">
+79.200
+</td>
+<td style="text-align:right;">
+4.1
+</td>
+<td style="text-align:right;">
+8.1554911
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Bahrain
+</td>
+<td style="text-align:left;">
+Middle East & North Africa
+</td>
+<td style="text-align:left;">
+High income
+</td>
+<td style="text-align:right;">
+23742.937
+</td>
+<td style="text-align:right;">
+61.1893688
+</td>
+<td style="text-align:right;">
+3.837
+</td>
+<td style="text-align:right;">
+0.483000
+</td>
+<td style="text-align:right;">
+2.32452
+</td>
+<td style="text-align:right;">
+2.0512821
+</td>
+<td style="text-align:right;">
+78.143
+</td>
+<td style="text-align:right;">
+76.188
+</td>
+<td style="text-align:right;">
+7.3
+</td>
+<td style="text-align:right;">
+20.3336240
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Brazil
+</td>
+<td style="text-align:left;">
+Latin America & Caribbean
+</td>
+<td style="text-align:left;">
+Upper middle income
+</td>
+<td style="text-align:right;">
+9928.676
+</td>
+<td style="text-align:right;">
+46.2664552
+</td>
+<td style="text-align:right;">
+14.718
+</td>
+<td style="text-align:right;">
+11.369000
+</td>
+<td style="text-align:right;">
+6.32048
+</td>
+<td style="text-align:right;">
+6.6715800
+</td>
+<td style="text-align:right;">
+79.156
+</td>
+<td style="text-align:right;">
+71.804
+</td>
+<td style="text-align:right;">
+15.4
+</td>
+<td style="text-align:right;">
+2.1644215
+</td>
+<td style="text-align:right;">
+99.80000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Canada
+</td>
+<td style="text-align:left;">
+North America
+</td>
+<td style="text-align:left;">
+High income
+</td>
+<td style="text-align:right;">
+45129.356
+</td>
+<td style="text-align:right;">
+143.5220535
+</td>
+<td style="text-align:right;">
+5.851
+</td>
+<td style="text-align:right;">
+6.781000
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+4.2951998
+</td>
+<td style="text-align:right;">
+84.000
+</td>
+<td style="text-align:right;">
+79.900
+</td>
+<td style="text-align:right;">
+5.2
+</td>
+<td style="text-align:right;">
+15.3852910
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Switzerland
+</td>
+<td style="text-align:left;">
+Europe & Central Asia
+</td>
+<td style="text-align:left;">
+High income
+</td>
+<td style="text-align:right;">
+83352.089
+</td>
+<td style="text-align:right;">
+239.3965223
+</td>
+<td style="text-align:right;">
+5.063
+</td>
+<td style="text-align:right;">
+4.572000
+</td>
+<td style="text-align:right;">
+4.95157
+</td>
+<td style="text-align:right;">
+10.0765183
+</td>
+<td style="text-align:right;">
+85.600
+</td>
+<td style="text-align:right;">
+81.600
+</td>
+<td style="text-align:right;">
+4.2
+</td>
+<td style="text-align:right;">
+4.5694192
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Cote d’Ivoire
+</td>
+<td style="text-align:left;">
+Sub-Saharan Africa
+</td>
+<td style="text-align:left;">
+Lower middle income
+</td>
+<td style="text-align:right;">
+2111.027
+</td>
+<td style="text-align:right;">
+24.2026471
+</td>
+<td style="text-align:right;">
+3.870
+</td>
+<td style="text-align:right;">
+2.860000
+</td>
+<td style="text-align:right;">
+3.80348
+</td>
+<td style="text-align:right;">
+11.0062893
+</td>
+<td style="text-align:right;">
+58.320
+</td>
+<td style="text-align:right;">
+55.864
+</td>
+<td style="text-align:right;">
+86.0
+</td>
+<td style="text-align:right;">
+0.4247575
+</td>
+<td style="text-align:right;">
+65.60000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Chile
+</td>
+<td style="text-align:left;">
+Latin America & Caribbean
+</td>
+<td style="text-align:left;">
+High income
+</td>
+<td style="text-align:right;">
+14998.817
+</td>
+<td style="text-align:right;">
+106.3678182
+</td>
+<td style="text-align:right;">
+7.462
+</td>
+<td style="text-align:right;">
+6.602000
+</td>
+<td style="text-align:right;">
+5.41966
+</td>
+<td style="text-align:right;">
+1.7242029
+</td>
+<td style="text-align:right;">
+82.333
+</td>
+<td style="text-align:right;">
+77.333
+</td>
+<td style="text-align:right;">
+7.4
+</td>
+<td style="text-align:right;">
+4.7123958
+</td>
+<td style="text-align:right;">
+99.70000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+China
+</td>
+<td style="text-align:left;">
+East Asia & Pacific
+</td>
+<td style="text-align:left;">
+Upper middle income
+</td>
+<td style="text-align:right;">
+8816.987
+</td>
+<td style="text-align:right;">
+70.7634243
+</td>
+<td style="text-align:right;">
+3.853
+</td>
+<td style="text-align:right;">
+4.913000
+</td>
+<td style="text-align:right;">
+3.66745
+</td>
+<td style="text-align:right;">
+12.6785033
+</td>
+<td style="text-align:right;">
+78.828
+</td>
+<td style="text-align:right;">
+74.315
+</td>
+<td style="text-align:right;">
+9.2
+</td>
+<td style="text-align:right;">
+7.1749480
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Colombia
+</td>
+<td style="text-align:left;">
+Latin America & Caribbean
+</td>
+<td style="text-align:left;">
+Upper middle income
+</td>
+<td style="text-align:right;">
+6376.707
+</td>
+<td style="text-align:right;">
+38.9495245
+</td>
+<td style="text-align:right;">
+11.502
+</td>
+<td style="text-align:right;">
+6.865000
+</td>
+<td style="text-align:right;">
+4.53551
+</td>
+<td style="text-align:right;">
+5.4249662
+</td>
+<td style="text-align:right;">
+79.694
+</td>
+<td style="text-align:right;">
+74.124
+</td>
+<td style="text-align:right;">
+14.6
+</td>
+<td style="text-align:right;">
+1.5551062
+</td>
+<td style="text-align:right;">
+98.50000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Costa Rica
+</td>
+<td style="text-align:left;">
+Latin America & Caribbean
+</td>
+<td style="text-align:left;">
+Upper middle income
+</td>
+<td style="text-align:right;">
+12225.574
+</td>
+<td style="text-align:right;">
+4.9751435
+</td>
+<td style="text-align:right;">
+10.290
+</td>
+<td style="text-align:right;">
+6.820000
+</td>
+<td style="text-align:right;">
+7.06981
+</td>
+<td style="text-align:right;">
+4.9255778
+</td>
+<td style="text-align:right;">
+82.557
+</td>
+<td style="text-align:right;">
+77.354
+</td>
+<td style="text-align:right;">
+8.7
+</td>
+<td style="text-align:right;">
+1.6525403
+</td>
+<td style="text-align:right;">
+99.60000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Cyprus
+</td>
+<td style="text-align:left;">
+Europe & Central Asia
+</td>
+<td style="text-align:left;">
+High income
+</td>
+<td style="text-align:right;">
+26608.875
+</td>
+<td style="text-align:right;">
+12.3405769
+</td>
+<td style="text-align:right;">
+11.265
+</td>
+<td style="text-align:right;">
+10.865000
+</td>
+<td style="text-align:right;">
+5.75417
+</td>
+<td style="text-align:right;">
+10.2088745
+</td>
+<td style="text-align:right;">
+82.794
+</td>
+<td style="text-align:right;">
+78.547
+</td>
+<td style="text-align:right;">
+2.8
+</td>
+<td style="text-align:right;">
+6.1880926
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Germany
+</td>
+<td style="text-align:left;">
+Europe & Central Asia
+</td>
+<td style="text-align:left;">
+High income
+</td>
+<td style="text-align:right;">
+44542.295
+</td>
+<td style="text-align:right;">
+61.4445107
+</td>
+<td style="text-align:right;">
+3.317
+</td>
+<td style="text-align:right;">
+4.129000
+</td>
+<td style="text-align:right;">
+4.88274
+</td>
+<td style="text-align:right;">
+33.6949366
+</td>
+<td style="text-align:right;">
+83.400
+</td>
+<td style="text-align:right;">
+78.700
+</td>
+<td style="text-align:right;">
+3.9
+</td>
+<td style="text-align:right;">
+8.8582937
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Algeria
+</td>
+<td style="text-align:left;">
+Middle East & North Africa
+</td>
+<td style="text-align:left;">
+Lower middle income
+</td>
+<td style="text-align:right;">
+4109.698
+</td>
+<td style="text-align:right;">
+0.2076133
+</td>
+<td style="text-align:right;">
+18.415
+</td>
+<td style="text-align:right;">
+8.315000
+</td>
+<td style="text-align:right;">
+6.50538
+</td>
+<td style="text-align:right;">
+3.1367000
+</td>
+<td style="text-align:right;">
+77.735
+</td>
+<td style="text-align:right;">
+75.307
+</td>
+<td style="text-align:right;">
+24.3
+</td>
+<td style="text-align:right;">
+3.5057477
+</td>
+<td style="text-align:right;">
+99.61514
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Egypt, Arab Rep. 
+</td>
+<td style="text-align:left;">
+Middle East & North Africa
+</td>
+<td style="text-align:left;">
+Lower middle income
+</td>
+<td style="text-align:right;">
+2444.290
+</td>
+<td style="text-align:right;">
+19.7452044
+</td>
+<td style="text-align:right;">
+22.749
+</td>
+<td style="text-align:right;">
+8.127000
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+2.9242742
+</td>
+<td style="text-align:right;">
+73.967
+</td>
+<td style="text-align:right;">
+69.453
+</td>
+<td style="text-align:right;">
+21.7
+</td>
+<td style="text-align:right;">
+2.4749439
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Spain
+</td>
+<td style="text-align:left;">
+Europe & Central Asia
+</td>
+<td style="text-align:left;">
+High income
+</td>
+<td style="text-align:right;">
+28100.586
+</td>
+<td style="text-align:right;">
+67.8866149
+</td>
+<td style="text-align:right;">
+19.022
+</td>
+<td style="text-align:right;">
+15.654000
+</td>
+<td style="text-align:right;">
+4.20778
+</td>
+<td style="text-align:right;">
+24.5297408
+</td>
+<td style="text-align:right;">
+86.100
+</td>
+<td style="text-align:right;">
+80.600
+</td>
+<td style="text-align:right;">
+3.3
+</td>
+<td style="text-align:right;">
+5.6540396
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+France
+</td>
+<td style="text-align:left;">
+Europe & Central Asia
+</td>
+<td style="text-align:left;">
+High income
+</td>
+<td style="text-align:right;">
+38685.258
+</td>
+<td style="text-align:right;">
+106.2027715
+</td>
+<td style="text-align:right;">
+9.374
+</td>
+<td style="text-align:right;">
+9.444000
+</td>
+<td style="text-align:right;">
+5.45160
+</td>
+<td style="text-align:right;">
+33.7213605
+</td>
+<td style="text-align:right;">
+85.700
+</td>
+<td style="text-align:right;">
+79.600
+</td>
+<td style="text-align:right;">
+4.3
+</td>
+<td style="text-align:right;">
+4.7275756
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Greece
+</td>
+<td style="text-align:left;">
+Europe & Central Asia
+</td>
+<td style="text-align:left;">
+High income
+</td>
+<td style="text-align:right;">
+18536.191
+</td>
+<td style="text-align:right;">
+25.3849319
+</td>
+<td style="text-align:right;">
+26.117
+</td>
+<td style="text-align:right;">
+17.851999
+</td>
+<td style="text-align:right;">
+3.47221
+</td>
+<td style="text-align:right;">
+16.5865012
+</td>
+<td style="text-align:right;">
+83.900
+</td>
+<td style="text-align:right;">
+78.800
+</td>
+<td style="text-align:right;">
+4.3
+</td>
+<td style="text-align:right;">
+6.2112500
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Croatia
+</td>
+<td style="text-align:left;">
+Europe & Central Asia
+</td>
+<td style="text-align:left;">
+High income
+</td>
+<td style="text-align:right;">
+13629.290
+</td>
+<td style="text-align:right;">
+40.4963655
+</td>
+<td style="text-align:right;">
+11.908
+</td>
+<td style="text-align:right;">
+10.608000
+</td>
+<td style="text-align:right;">
+3.90567
+</td>
+<td style="text-align:right;">
+14.4371797
+</td>
+<td style="text-align:right;">
+80.900
+</td>
+<td style="text-align:right;">
+74.900
+</td>
+<td style="text-align:right;">
+4.8
+</td>
+<td style="text-align:right;">
+4.2380576
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Hungary
+</td>
+<td style="text-align:left;">
+Europe & Central Asia
+</td>
+<td style="text-align:left;">
+High income
+</td>
+<td style="text-align:right;">
+14623.697
+</td>
+<td style="text-align:right;">
+22.0446330
+</td>
+<td style="text-align:right;">
+4.573
+</td>
+<td style="text-align:right;">
+3.813000
+</td>
+<td style="text-align:right;">
+4.61973
+</td>
+<td style="text-align:right;">
+47.3701512
+</td>
+<td style="text-align:right;">
+79.300
+</td>
+<td style="text-align:right;">
+72.500
+</td>
+<td style="text-align:right;">
+4.4
+</td>
+<td style="text-align:right;">
+4.7558400
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Indonesia
+</td>
+<td style="text-align:left;">
+East Asia & Pacific
+</td>
+<td style="text-align:left;">
+Lower middle income
+</td>
+<td style="text-align:right;">
+3837.578
+</td>
+<td style="text-align:right;">
+51.2679274
+</td>
+<td style="text-align:right;">
+3.599
+</td>
+<td style="text-align:right;">
+4.059000
+</td>
+<td style="text-align:right;">
+2.66998
+</td>
+<td style="text-align:right;">
+14.0078476
+</td>
+<td style="text-align:right;">
+73.515
+</td>
+<td style="text-align:right;">
+69.156
+</td>
+<td style="text-align:right;">
+25.6
+</td>
+<td style="text-align:right;">
+2.0136711
+</td>
+<td style="text-align:right;">
+98.14000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Ireland
+</td>
+<td style="text-align:left;">
+Europe & Central Asia
+</td>
+<td style="text-align:left;">
+High income
+</td>
+<td style="text-align:right;">
+69601.684
+</td>
+<td style="text-align:right;">
+43.7994987
+</td>
+<td style="text-align:right;">
+6.287
+</td>
+<td style="text-align:right;">
+7.066000
+</td>
+<td style="text-align:right;">
+3.46885
+</td>
+<td style="text-align:right;">
+6.6918276
+</td>
+<td style="text-align:right;">
+84.000
+</td>
+<td style="text-align:right;">
+80.400
+</td>
+<td style="text-align:right;">
+3.4
+</td>
+<td style="text-align:right;">
+7.8067341
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Israel
+</td>
+<td style="text-align:left;">
+Middle East & North Africa
+</td>
+<td style="text-align:left;">
+High income
+</td>
+<td style="text-align:right;">
+40774.130
+</td>
+<td style="text-align:right;">
+65.0333725
+</td>
+<td style="text-align:right;">
+4.326
+</td>
+<td style="text-align:right;">
+4.125000
+</td>
+<td style="text-align:right;">
+6.10273
+</td>
+<td style="text-align:right;">
+17.8835490
+</td>
+<td style="text-align:right;">
+84.600
+</td>
+<td style="text-align:right;">
+80.600
+</td>
+<td style="text-align:right;">
+3.8
+</td>
+<td style="text-align:right;">
+7.5792180
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+India
+</td>
+<td style="text-align:left;">
+South Asia
+</td>
+<td style="text-align:left;">
+Lower middle income
+</td>
+<td style="text-align:right;">
+1980.667
+</td>
+<td style="text-align:right;">
+96.3988262
+</td>
+<td style="text-align:right;">
+5.357
+</td>
+<td style="text-align:right;">
+5.359000
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+52.6088141
+</td>
+<td style="text-align:right;">
+70.425
+</td>
+<td style="text-align:right;">
+68.000
+</td>
+<td style="text-align:right;">
+38.6
+</td>
+<td style="text-align:right;">
+1.7191902
+</td>
+<td style="text-align:right;">
+92.45683
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Iran, Islamic Rep. 
+</td>
+<td style="text-align:left;">
+Middle East & North Africa
+</td>
+<td style="text-align:left;">
+Lower middle income
+</td>
+<td style="text-align:right;">
+5520.315
+</td>
+<td style="text-align:right;">
+23.8756332
+</td>
+<td style="text-align:right;">
+19.938
+</td>
+<td style="text-align:right;">
+10.339000
+</td>
+<td style="text-align:right;">
+3.79040
+</td>
+<td style="text-align:right;">
+9.0172892
+</td>
+<td style="text-align:right;">
+77.436
+</td>
+<td style="text-align:right;">
+75.217
+</td>
+<td style="text-align:right;">
+14.4
+</td>
+<td style="text-align:right;">
+7.6949310
+</td>
+<td style="text-align:right;">
+99.94000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Jamaica
+</td>
+<td style="text-align:left;">
+Latin America & Caribbean
+</td>
+<td style="text-align:left;">
+Upper middle income
+</td>
+<td style="text-align:right;">
+5070.100
+</td>
+<td style="text-align:right;">
+63.5079773
+</td>
+<td style="text-align:right;">
+15.382
+</td>
+<td style="text-align:right;">
+8.426000
+</td>
+<td style="text-align:right;">
+5.26017
+</td>
+<td style="text-align:right;">
+11.0803324
+</td>
+<td style="text-align:right;">
+75.878
+</td>
+<td style="text-align:right;">
+72.708
+</td>
+<td style="text-align:right;">
+14.6
+</td>
+<td style="text-align:right;">
+2.4616139
+</td>
+<td style="text-align:right;">
+97.62187
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Jordan
+</td>
+<td style="text-align:left;">
+Middle East & North Africa
+</td>
+<td style="text-align:left;">
+Upper middle income
+</td>
+<td style="text-align:right;">
+4231.518
+</td>
+<td style="text-align:right;">
+57.8825440
+</td>
+<td style="text-align:right;">
+27.152
+</td>
+<td style="text-align:right;">
+15.762000
+</td>
+<td style="text-align:right;">
+3.22854
+</td>
+<td style="text-align:right;">
+2.1063303
+</td>
+<td style="text-align:right;">
+76.052
+</td>
+<td style="text-align:right;">
+72.628
+</td>
+<td style="text-align:right;">
+16.4
+</td>
+<td style="text-align:right;">
+2.6671190
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Japan
+</td>
+<td style="text-align:left;">
+East Asia & Pacific
+</td>
+<td style="text-align:left;">
+High income
+</td>
+<td style="text-align:right;">
+38891.086
+</td>
+<td style="text-align:right;">
+126.2021994
+</td>
+<td style="text-align:right;">
+2.635
+</td>
+<td style="text-align:right;">
+2.927000
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+11.4156379
+</td>
+<td style="text-align:right;">
+87.260
+</td>
+<td style="text-align:right;">
+81.090
+</td>
+<td style="text-align:right;">
+2.6
+</td>
+<td style="text-align:right;">
+9.0856391
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Korea, Rep. 
+</td>
+<td style="text-align:left;">
+East Asia & Pacific
+</td>
+<td style="text-align:left;">
+High income
+</td>
+<td style="text-align:right;">
+31616.843
+</td>
+<td style="text-align:right;">
+109.1056282
+</td>
+<td style="text-align:right;">
+3.476
+</td>
+<td style="text-align:right;">
+3.775000
+</td>
+<td style="text-align:right;">
+4.32824
+</td>
+<td style="text-align:right;">
+14.3236591
+</td>
+<td style="text-align:right;">
+85.700
+</td>
+<td style="text-align:right;">
+79.700
+</td>
+<td style="text-align:right;">
+3.3
+</td>
+<td style="text-align:right;">
+12.1753647
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Kazakhstan
+</td>
+<td style="text-align:left;">
+Europe & Central Asia
+</td>
+<td style="text-align:left;">
+Upper middle income
+</td>
+<td style="text-align:right;">
+9247.581
+</td>
+<td style="text-align:right;">
+27.3121497
+</td>
+<td style="text-align:right;">
+5.435
+</td>
+<td style="text-align:right;">
+4.404000
+</td>
+<td style="text-align:right;">
+2.75082
+</td>
+<td style="text-align:right;">
+10.9853317
+</td>
+<td style="text-align:right;">
+76.920
+</td>
+<td style="text-align:right;">
+68.720
+</td>
+<td style="text-align:right;">
+10.5
+</td>
+<td style="text-align:right;">
+12.5048676
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Lebanon
+</td>
+<td style="text-align:left;">
+Middle East & North Africa
+</td>
+<td style="text-align:left;">
+Upper middle income
+</td>
+<td style="text-align:right;">
+7819.605
+</td>
+<td style="text-align:right;">
+21.5505164
+</td>
+<td style="text-align:right;">
+13.806
+</td>
+<td style="text-align:right;">
+9.113000
+</td>
+<td style="text-align:right;">
+2.13294
+</td>
+<td style="text-align:right;">
+12.9032258
+</td>
+<td style="text-align:right;">
+80.786
+</td>
+<td style="text-align:right;">
+77.031
+</td>
+<td style="text-align:right;">
+7.7
+</td>
+<td style="text-align:right;">
+4.2936499
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Sri Lanka
+</td>
+<td style="text-align:left;">
+South Asia
+</td>
+<td style="text-align:left;">
+Lower middle income
+</td>
+<td style="text-align:right;">
+4077.044
+</td>
+<td style="text-align:right;">
+21.6858354
+</td>
+<td style="text-align:right;">
+6.305
+</td>
+<td style="text-align:right;">
+2.819000
+</td>
+<td style="text-align:right;">
+2.79925
+</td>
+<td style="text-align:right;">
+21.3303605
+</td>
+<td style="text-align:right;">
+79.979
+</td>
+<td style="text-align:right;">
+73.238
+</td>
+<td style="text-align:right;">
+7.8
+</td>
+<td style="text-align:right;">
+1.0870173
+</td>
+<td style="text-align:right;">
+97.50000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Luxembourg
+</td>
+<td style="text-align:left;">
+Europe & Central Asia
+</td>
+<td style="text-align:left;">
+High income
+</td>
+<td style="text-align:right;">
+109921.031
+</td>
+<td style="text-align:right;">
+104.7127658
+</td>
+<td style="text-align:right;">
+5.498
+</td>
+<td style="text-align:right;">
+5.538000
+</td>
+<td style="text-align:right;">
+3.56959
+</td>
+<td style="text-align:right;">
+25.5300412
+</td>
+<td style="text-align:right;">
+84.400
+</td>
+<td style="text-align:right;">
+79.900
+</td>
+<td style="text-align:right;">
+2.8
+</td>
+<td style="text-align:right;">
+15.0921628
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Morocco
+</td>
+<td style="text-align:left;">
+Middle East & North Africa
+</td>
+<td style="text-align:left;">
+Lower middle income
+</td>
+<td style="text-align:right;">
+3035.454
+</td>
+<td style="text-align:right;">
+61.1294788
+</td>
+<td style="text-align:right;">
+10.683
+</td>
+<td style="text-align:right;">
+8.737001
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+16.7546493
+</td>
+<td style="text-align:right;">
+77.438
+</td>
+<td style="text-align:right;">
+74.948
+</td>
+<td style="text-align:right;">
+21.2
+</td>
+<td style="text-align:right;">
+1.8529418
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Malta
+</td>
+<td style="text-align:left;">
+Middle East & North Africa
+</td>
+<td style="text-align:left;">
+High income
+</td>
+<td style="text-align:right;">
+28250.698
+</td>
+<td style="text-align:right;">
+39.1125734
+</td>
+<td style="text-align:right;">
+4.249
+</td>
+<td style="text-align:right;">
+3.829000
+</td>
+<td style="text-align:right;">
+4.65163
+</td>
+<td style="text-align:right;">
+28.3437500
+</td>
+<td style="text-align:right;">
+84.600
+</td>
+<td style="text-align:right;">
+80.200
+</td>
+<td style="text-align:right;">
+6.6
+</td>
+<td style="text-align:right;">
+3.2478702
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Mauritius
+</td>
+<td style="text-align:left;">
+Sub-Saharan Africa
+</td>
+<td style="text-align:left;">
+Upper middle income
+</td>
+<td style="text-align:right;">
+10484.908
+</td>
+<td style="text-align:right;">
+73.4796122
+</td>
+<td style="text-align:right;">
+10.062
+</td>
+<td style="text-align:right;">
+4.650000
+</td>
+<td style="text-align:right;">
+5.02313
+</td>
+<td style="text-align:right;">
+36.9458128
+</td>
+<td style="text-align:right;">
+77.890
+</td>
+<td style="text-align:right;">
+71.300
+</td>
+<td style="text-align:right;">
+14.9
+</td>
+<td style="text-align:right;">
+3.3053590
+</td>
+<td style="text-align:right;">
+99.61000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Mexico
+</td>
+<td style="text-align:left;">
+Latin America & Caribbean
+</td>
+<td style="text-align:left;">
+Upper middle income
+</td>
+<td style="text-align:right;">
+9287.850
+</td>
+<td style="text-align:right;">
+35.9837630
+</td>
+<td style="text-align:right;">
+3.602
+</td>
+<td style="text-align:right;">
+3.312000
+</td>
+<td style="text-align:right;">
+4.51822
+</td>
+<td style="text-align:right;">
+12.2971270
+</td>
+<td style="text-align:right;">
+77.827
+</td>
+<td style="text-align:right;">
+72.046
+</td>
+<td style="text-align:right;">
+15.2
+</td>
+<td style="text-align:right;">
+3.7812158
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Malaysia
+</td>
+<td style="text-align:left;">
+East Asia & Pacific
+</td>
+<td style="text-align:left;">
+Upper middle income
+</td>
+<td style="text-align:right;">
+10259.305
+</td>
+<td style="text-align:right;">
+142.8251821
+</td>
+<td style="text-align:right;">
+3.825
+</td>
+<td style="text-align:right;">
+3.151000
+</td>
+<td style="text-align:right;">
+4.67531
+</td>
+<td style="text-align:right;">
+2.5140770
+</td>
+<td style="text-align:right;">
+78.008
+</td>
+<td style="text-align:right;">
+73.903
+</td>
+<td style="text-align:right;">
+8.3
+</td>
+<td style="text-align:right;">
+7.1658085
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Namibia
+</td>
+<td style="text-align:left;">
+Sub-Saharan Africa
+</td>
+<td style="text-align:left;">
+Upper middle income
+</td>
+<td style="text-align:right;">
+5367.115
+</td>
+<td style="text-align:right;">
+22.6071805
+</td>
+<td style="text-align:right;">
+21.810
+</td>
+<td style="text-align:right;">
+21.476000
+</td>
+<td style="text-align:right;">
+9.75998
+</td>
+<td style="text-align:right;">
+0.9717111
+</td>
+<td style="text-align:right;">
+65.823
+</td>
+<td style="text-align:right;">
+60.020
+</td>
+<td style="text-align:right;">
+44.9
+</td>
+<td style="text-align:right;">
+1.8021970
+</td>
+<td style="text-align:right;">
+52.50000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Nigeria
+</td>
+<td style="text-align:left;">
+Sub-Saharan Africa
+</td>
+<td style="text-align:left;">
+Lower middle income
+</td>
+<td style="text-align:right;">
+1968.565
+</td>
+<td style="text-align:right;">
+9.9049820
+</td>
+<td style="text-align:right;">
+9.257
+</td>
+<td style="text-align:right;">
+7.679000
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+37.3310496
+</td>
+<td style="text-align:right;">
+54.843
+</td>
+<td style="text-align:right;">
+53.086
+</td>
+<td style="text-align:right;">
+122.5
+</td>
+<td style="text-align:right;">
+0.5915968
+</td>
+<td style="text-align:right;">
+54.40000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Netherlands
+</td>
+<td style="text-align:left;">
+Europe & Central Asia
+</td>
+<td style="text-align:left;">
+High income
+</td>
+<td style="text-align:right;">
+48554.992
+</td>
+<td style="text-align:right;">
+132.2544227
+</td>
+<td style="text-align:right;">
+5.253
+</td>
+<td style="text-align:right;">
+4.482000
+</td>
+<td style="text-align:right;">
+5.17510
+</td>
+<td style="text-align:right;">
+30.7989308
+</td>
+<td style="text-align:right;">
+83.400
+</td>
+<td style="text-align:right;">
+80.200
+</td>
+<td style="text-align:right;">
+4.0
+</td>
+<td style="text-align:right;">
+9.1008876
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Norway
+</td>
+<td style="text-align:left;">
+Europe & Central Asia
+</td>
+<td style="text-align:left;">
+High income
+</td>
+<td style="text-align:right;">
+75496.754
+</td>
+<td style="text-align:right;">
+72.0874893
+</td>
+<td style="text-align:right;">
+3.696
+</td>
+<td style="text-align:right;">
+4.588000
+</td>
+<td style="text-align:right;">
+7.91198
+</td>
+<td style="text-align:right;">
+2.1951235
+</td>
+<td style="text-align:right;">
+84.300
+</td>
+<td style="text-align:right;">
+81.000
+</td>
+<td style="text-align:right;">
+2.5
+</td>
+<td style="text-align:right;">
+6.9926518
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+New Zealand
+</td>
+<td style="text-align:left;">
+East Asia & Pacific
+</td>
+<td style="text-align:left;">
+High income
+</td>
+<td style="text-align:right;">
+42992.895
+</td>
+<td style="text-align:right;">
+45.7554990
+</td>
+<td style="text-align:right;">
+5.239
+</td>
+<td style="text-align:right;">
+4.289000
+</td>
+<td style="text-align:right;">
+6.25974
+</td>
+<td style="text-align:right;">
+1.8647222
+</td>
+<td style="text-align:right;">
+83.400
+</td>
+<td style="text-align:right;">
+80.000
+</td>
+<td style="text-align:right;">
+5.2
+</td>
+<td style="text-align:right;">
+6.8389563
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Oman
+</td>
+<td style="text-align:left;">
+Middle East & North Africa
+</td>
+<td style="text-align:left;">
+High income
+</td>
+<td style="text-align:right;">
+17329.185
+</td>
+<td style="text-align:right;">
+26.3415163
+</td>
+<td style="text-align:right;">
+10.831
+</td>
+<td style="text-align:right;">
+1.363000
+</td>
+<td style="text-align:right;">
+5.84019
+</td>
+<td style="text-align:right;">
+0.2239095
+</td>
+<td style="text-align:right;">
+79.906
+</td>
+<td style="text-align:right;">
+75.645
+</td>
+<td style="text-align:right;">
+11.2
+</td>
+<td style="text-align:right;">
+14.9809491
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Panama
+</td>
+<td style="text-align:left;">
+Latin America & Caribbean
+</td>
+<td style="text-align:left;">
+Upper middle income
+</td>
+<td style="text-align:right;">
+15146.409
+</td>
+<td style="text-align:right;">
+24.1528164
+</td>
+<td style="text-align:right;">
+5.092
+</td>
+<td style="text-align:right;">
+3.045000
+</td>
+<td style="text-align:right;">
+2.88224
+</td>
+<td style="text-align:right;">
+7.6227739
+</td>
+<td style="text-align:right;">
+81.412
+</td>
+<td style="text-align:right;">
+75.060
+</td>
+<td style="text-align:right;">
+15.9
+</td>
+<td style="text-align:right;">
+2.4958824
+</td>
+<td style="text-align:right;">
+93.70000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Peru
+</td>
+<td style="text-align:left;">
+Latin America & Caribbean
+</td>
+<td style="text-align:left;">
+Upper middle income
+</td>
+<td style="text-align:right;">
+6710.508
+</td>
+<td style="text-align:right;">
+47.0211237
+</td>
+<td style="text-align:right;">
+3.907
+</td>
+<td style="text-align:right;">
+3.507000
+</td>
+<td style="text-align:right;">
+3.93131
+</td>
+<td style="text-align:right;">
+2.7250000
+</td>
+<td style="text-align:right;">
+79.031
+</td>
+<td style="text-align:right;">
+73.612
+</td>
+<td style="text-align:right;">
+14.4
+</td>
+<td style="text-align:right;">
+1.7170044
+</td>
+<td style="text-align:right;">
+94.80000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Papua New Guinea
+</td>
+<td style="text-align:left;">
+East Asia & Pacific
+</td>
+<td style="text-align:left;">
+Lower middle income
+</td>
+<td style="text-align:right;">
+2695.249
+</td>
+<td style="text-align:right;">
+7.3939611
+</td>
+<td style="text-align:right;">
+1.508
+</td>
+<td style="text-align:right;">
+3.447000
+</td>
+<td style="text-align:right;">
+1.96493
+</td>
+<td style="text-align:right;">
+0.6624564
+</td>
+<td style="text-align:right;">
+65.326
+</td>
+<td style="text-align:right;">
+62.784
+</td>
+<td style="text-align:right;">
+48.2
+</td>
+<td style="text-align:right;">
+0.9125344
+</td>
+<td style="text-align:right;">
+54.40000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Philippines
+</td>
+<td style="text-align:left;">
+East Asia & Pacific
+</td>
+<td style="text-align:left;">
+Lower middle income
+</td>
+<td style="text-align:right;">
+3123.246
+</td>
+<td style="text-align:right;">
+88.4074079
+</td>
+<td style="text-align:right;">
+2.698
+</td>
+<td style="text-align:right;">
+2.458000
+</td>
+<td style="text-align:right;">
+4.40000
+</td>
+<td style="text-align:right;">
+18.7476943
+</td>
+<td style="text-align:right;">
+75.268
+</td>
+<td style="text-align:right;">
+66.971
+</td>
+<td style="text-align:right;">
+28.5
+</td>
+<td style="text-align:right;">
+1.2987183
+</td>
+<td style="text-align:right;">
+93.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Poland
+</td>
+<td style="text-align:left;">
+Europe & Central Asia
+</td>
+<td style="text-align:left;">
+High income
+</td>
+<td style="text-align:right;">
+13864.682
+</td>
+<td style="text-align:right;">
+38.2506162
+</td>
+<td style="text-align:right;">
+4.912
+</td>
+<td style="text-align:right;">
+4.872000
+</td>
+<td style="text-align:right;">
+4.55846
+</td>
+<td style="text-align:right;">
+35.6216728
+</td>
+<td style="text-align:right;">
+81.800
+</td>
+<td style="text-align:right;">
+73.900
+</td>
+<td style="text-align:right;">
+4.6
+</td>
+<td style="text-align:right;">
+8.2375624
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Portugal
+</td>
+<td style="text-align:left;">
+Europe & Central Asia
+</td>
+<td style="text-align:left;">
+High income
+</td>
+<td style="text-align:right;">
+21437.348
+</td>
+<td style="text-align:right;">
+34.2327108
+</td>
+<td style="text-align:right;">
+9.350
+</td>
+<td style="text-align:right;">
+8.410000
+</td>
+<td style="text-align:right;">
+5.01561
+</td>
+<td style="text-align:right;">
+10.3051495
+</td>
+<td style="text-align:right;">
+84.600
+</td>
+<td style="text-align:right;">
+78.400
+</td>
+<td style="text-align:right;">
+3.6
+</td>
+<td style="text-align:right;">
+5.1775191
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Qatar
+</td>
+<td style="text-align:left;">
+Middle East & North Africa
+</td>
+<td style="text-align:left;">
+High income
+</td>
+<td style="text-align:right;">
+59124.867
+</td>
+<td style="text-align:right;">
+81.0743462
+</td>
+<td style="text-align:right;">
+0.639
+</td>
+<td style="text-align:right;">
+0.062000
+</td>
+<td style="text-align:right;">
+2.96746
+</td>
+<td style="text-align:right;">
+1.2184508
+</td>
+<td style="text-align:right;">
+81.743
+</td>
+<td style="text-align:right;">
+78.830
+</td>
+<td style="text-align:right;">
+7.0
+</td>
+<td style="text-align:right;">
+32.1793706
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Romania
+</td>
+<td style="text-align:left;">
+Europe & Central Asia
+</td>
+<td style="text-align:left;">
+Upper middle income
+</td>
+<td style="text-align:right;">
+10807.009
+</td>
+<td style="text-align:right;">
+11.1580967
+</td>
+<td style="text-align:right;">
+4.045
+</td>
+<td style="text-align:right;">
+5.606000
+</td>
+<td style="text-align:right;">
+3.09539
+</td>
+<td style="text-align:right;">
+37.1305633
+</td>
+<td style="text-align:right;">
+79.100
+</td>
+<td style="text-align:right;">
+71.700
+</td>
+<td style="text-align:right;">
+7.9
+</td>
+<td style="text-align:right;">
+3.7827902
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Russian Federation
+</td>
+<td style="text-align:left;">
+Europe & Central Asia
+</td>
+<td style="text-align:left;">
+Upper middle income
+</td>
+<td style="text-align:right;">
+10720.333
+</td>
+<td style="text-align:right;">
+39.6026644
+</td>
+<td style="text-align:right;">
+5.050
+</td>
+<td style="text-align:right;">
+5.360000
+</td>
+<td style="text-align:right;">
+4.68991
+</td>
+<td style="text-align:right;">
+7.4280983
+</td>
+<td style="text-align:right;">
+77.640
+</td>
+<td style="text-align:right;">
+67.510
+</td>
+<td style="text-align:right;">
+6.9
+</td>
+<td style="text-align:right;">
+10.7766446
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Saudi Arabia
+</td>
+<td style="text-align:left;">
+Middle East & North Africa
+</td>
+<td style="text-align:left;">
+High income
+</td>
+<td style="text-align:right;">
+20802.466
+</td>
+<td style="text-align:right;">
+65.5515331
+</td>
+<td style="text-align:right;">
+21.253
+</td>
+<td style="text-align:right;">
+3.213000
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+1.5988352
+</td>
+<td style="text-align:right;">
+76.487
+</td>
+<td style="text-align:right;">
+73.671
+</td>
+<td style="text-align:right;">
+8.1
+</td>
+<td style="text-align:right;">
+16.3347636
+</td>
+<td style="text-align:right;">
+99.93000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Singapore
+</td>
+<td style="text-align:left;">
+East Asia & Pacific
+</td>
+<td style="text-align:left;">
+High income
+</td>
+<td style="text-align:right;">
+61176.456
+</td>
+<td style="text-align:right;">
+229.2947188
+</td>
+<td style="text-align:right;">
+4.436
+</td>
+<td style="text-align:right;">
+4.032000
+</td>
+<td style="text-align:right;">
+2.76826
+</td>
+<td style="text-align:right;">
+0.7898449
+</td>
+<td style="text-align:right;">
+85.400
+</td>
+<td style="text-align:right;">
+80.900
+</td>
+<td style="text-align:right;">
+2.6
+</td>
+<td style="text-align:right;">
+8.4511514
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Slovenia
+</td>
+<td style="text-align:left;">
+Europe & Central Asia
+</td>
+<td style="text-align:left;">
+High income
+</td>
+<td style="text-align:right;">
+23455.945
+</td>
+<td style="text-align:right;">
+13.0358151
+</td>
+<td style="text-align:right;">
+7.468
+</td>
+<td style="text-align:right;">
+5.769000
+</td>
+<td style="text-align:right;">
+4.78078
+</td>
+<td style="text-align:right;">
+9.1369096
+</td>
+<td style="text-align:right;">
+84.000
+</td>
+<td style="text-align:right;">
+78.200
+</td>
+<td style="text-align:right;">
+2.4
+</td>
+<td style="text-align:right;">
+6.8428582
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Thailand
+</td>
+<td style="text-align:left;">
+East Asia & Pacific
+</td>
+<td style="text-align:left;">
+Upper middle income
+</td>
+<td style="text-align:right;">
+6593.818
+</td>
+<td style="text-align:right;">
+120.2557332
+</td>
+<td style="text-align:right;">
+0.841
+</td>
+<td style="text-align:right;">
+0.821000
+</td>
+<td style="text-align:right;">
+3.35573
+</td>
+<td style="text-align:right;">
+32.9033647
+</td>
+<td style="text-align:right;">
+80.468
+</td>
+<td style="text-align:right;">
+72.977
+</td>
+<td style="text-align:right;">
+9.9
+</td>
+<td style="text-align:right;">
+3.7662287
+</td>
+<td style="text-align:right;">
+99.90000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Tunisia
+</td>
+<td style="text-align:left;">
+Middle East & North Africa
+</td>
+<td style="text-align:left;">
+Lower middle income
+</td>
+<td style="text-align:right;">
+3687.777
+</td>
+<td style="text-align:right;">
+21.1616433
+</td>
+<td style="text-align:right;">
+22.609
+</td>
+<td style="text-align:right;">
+12.378000
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+16.7803811
+</td>
+<td style="text-align:right;">
+78.350
+</td>
+<td style="text-align:right;">
+74.297
+</td>
+<td style="text-align:right;">
+17.1
+</td>
+<td style="text-align:right;">
+2.6142618
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Turkey
+</td>
+<td style="text-align:left;">
+Europe & Central Asia
+</td>
+<td style="text-align:left;">
+Upper middle income
+</td>
+<td style="text-align:right;">
+10589.668
+</td>
+<td style="text-align:right;">
+26.4857753
+</td>
+<td style="text-align:right;">
+13.848
+</td>
+<td style="text-align:right;">
+9.342000
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+25.9839143
+</td>
+<td style="text-align:right;">
+80.088
+</td>
+<td style="text-align:right;">
+74.149
+</td>
+<td style="text-align:right;">
+11.4
+</td>
+<td style="text-align:right;">
+5.1271967
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Ukraine
+</td>
+<td style="text-align:left;">
+Europe & Central Asia
+</td>
+<td style="text-align:left;">
+Lower middle income
+</td>
+<td style="text-align:right;">
+2638.326
+</td>
+<td style="text-align:right;">
+4.6373230
+</td>
+<td style="text-align:right;">
+7.737
+</td>
+<td style="text-align:right;">
+11.153000
+</td>
+<td style="text-align:right;">
+5.41226
+</td>
+<td style="text-align:right;">
+56.5751769
+</td>
+<td style="text-align:right;">
+76.780
+</td>
+<td style="text-align:right;">
+67.020
+</td>
+<td style="text-align:right;">
+8.9
+</td>
+<td style="text-align:right;">
+3.8999682
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+United States
+</td>
+<td style="text-align:left;">
+North America
+</td>
+<td style="text-align:left;">
+High income
+</td>
+<td style="text-align:right;">
+60109.656
+</td>
+<td style="text-align:right;">
+164.3592942
+</td>
+<td style="text-align:right;">
+4.312
+</td>
+<td style="text-align:right;">
+4.402000
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+17.2438567
+</td>
+<td style="text-align:right;">
+81.100
+</td>
+<td style="text-align:right;">
+76.100
+</td>
+<td style="text-align:right;">
+6.6
+</td>
+<td style="text-align:right;">
+14.8058824
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Vietnam
+</td>
+<td style="text-align:left;">
+East Asia & Pacific
+</td>
+<td style="text-align:left;">
+Lower middle income
+</td>
+<td style="text-align:right;">
+2365.522
+</td>
+<td style="text-align:right;">
+55.9970069
+</td>
+<td style="text-align:right;">
+1.698
+</td>
+<td style="text-align:right;">
+2.027000
+</td>
+<td style="text-align:right;">
+4.08554
+</td>
+<td style="text-align:right;">
+22.5378140
+</td>
+<td style="text-align:right;">
+79.366
+</td>
+<td style="text-align:right;">
+71.124
+</td>
+<td style="text-align:right;">
+21.4
+</td>
+<td style="text-align:right;">
+2.3480813
+</td>
+<td style="text-align:right;">
+100.00000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+South Africa
+</td>
+<td style="text-align:left;">
+Sub-Saharan Africa
+</td>
+<td style="text-align:left;">
+Upper middle income
+</td>
+<td style="text-align:right;">
+6690.940
+</td>
+<td style="text-align:right;">
+322.7109753
+</td>
+<td style="text-align:right;">
+29.283
+</td>
+<td style="text-align:right;">
+25.219999
+</td>
+<td style="text-align:right;">
+6.11306
+</td>
+<td style="text-align:right;">
+9.8920937
+</td>
+<td style="text-align:right;">
+67.064
+</td>
+<td style="text-align:right;">
+60.162
+</td>
+<td style="text-align:right;">
+34.6
+</td>
+<td style="text-align:right;">
+7.6327294
+</td>
+<td style="text-align:right;">
+84.40000
+</td>
+</tr>
+</tbody>
+</table>
 The variables `region` and `income` are categorical and they take only
 predefined values. Those variables are saved as characters and hence we
 convert them to factors. We observe that region has 7 levels and income
@@ -223,7 +3233,7 @@ The graph below shows the variable `Education.Expend` plotted againts
 values are shown as red dots near the bottom of each panel. We can see
 that the missing values exist across the whole range in both of the
 graphs and the distribution is similar to the one of the none missing
-observations .In particular, in the first graph it can be seen that some
+observations. In particular, in the first graph it can be seen that some
 values are clustered in the lower range of GDP. In the second graph, the
 missing values are uniformly distributed acrros the x-axis.
 
@@ -466,10 +3476,12 @@ particularly if the variables distribution is higly skewed.If we had
 noticed some anomalous data we would be worth to choose to investigate
 further by visualizing histograms and parfoming the IQR method.
 <img src="Development-Indicators-2017-Visualisation-Report_files/figure-gfm/Fig4-1.png" title="\label{fig:fig4} Boxplots" alt="\label{fig:fig4} Boxplots" style="display: block; margin: auto;" />
-\# Exploration of the univariate and multivariate distribution Up until
-now we investigate the structure and quality of the data. The following
-section presents a brief exploration of the univariate and multivariate
-distribution of the data.
+
+# Exploration of the univariate and multivariate distribution
+
+Up until now we investigate the structure and quality of the data. The
+following section presents a brief exploration of the univariate and
+multivariate distribution of the data.
 
 ## Univariate Analysis
 
@@ -523,11 +3535,14 @@ Finally we’re going to look into the distribution of Education
 Expenditure.%. The distribution is close to normal, and there are two
 outliers on the right.
 <img src="Development-Indicators-2017-Visualisation-Report_files/figure-gfm/Fig7-1.png" title="\label{fig:fig6} Distribution of numerical variables" alt="\label{fig:fig6} Distribution of numerical variables" style="display: block; margin: auto;" />
-\## Multivariate Analysis The figure below is visual representation of
-the multivariate correlation structure and their significance levels.
-The heatmap shows the pairwise Pearson correlation coefficients between
-the variables. The variables which do not have a significant correlation
-are left blank. We observe that:
+
+## Multivariate Analysis
+
+The figure below is visual representation of the multivariate
+correlation structure and their significance levels. The heatmap shows
+the pairwise Pearson correlation coefficients between the variables. The
+variables which do not have a significant correlation are left blank. We
+observe that:
 
 -   Mortality has a very high negative correlation with access to
     electricity and lives expectancy of both genders.
@@ -697,7 +3712,8 @@ Lower middle income
 This map shows the GDP per capita and Market Capitalisations in every
 country globally.
 <img src="Development-Indicators-2017-Visualisation-Report_files/figure-gfm/Fig11-1.png" style="display: block; margin: auto;" /><img src="Development-Indicators-2017-Visualisation-Report_files/figure-gfm/Fig11-2.png" style="display: block; margin: auto;" />
-\### CO2 and income
+
+### CO2 and income
 
 The first plot shows a violin plot of CO2 emissions per income category.
 We can see that the mean CO2 consumption doesn’t differ a lot between
@@ -899,40 +3915,19 @@ per 1000 live births in each country.
 
 ### Access to electricity Map
 
-    ## Warning in mypalette_elec(join.coord$Access2Elec.pcnt): Some values were outside
-    ## the color scale and will be treated as NA
-
-<img src="Development-Indicators-2017-Visualisation-Report_files/figure-gfm/Fig20-1.png" style="display: block; margin: auto;" />
 The plot below shows only countries with Access to Electricity less than
 100%.We can see that all countries are categorised as either lower or
 upper middle income.
-
-``` r
-dev.inc %>% 
-  select(country,income,GDP.percap,Access2Elec.pcnt) %>% 
-  filter(Access2Elec.pcnt<99) %>% 
-  ggplot(aes(x=GDP.percap,y=Access2Elec.pcnt,color=income))+
-  geom_point(alpha=0.8)+
-  geom_text_repel(aes(label= ifelse(Access2Elec.pcnt < 99,
-                                    as.character(country),'')),hjust=0,vjust=0.5,size=2.5)+
-  #Theme customization
-  theme_bw()+
-  theme(legend.position =c(0.8,0.15),
-        axis.line = element_line(colour = "black",size = 0.25),
-        text = element_text(size = 8))+
-  scale_color_brewer(palette = 'Set1')+
-  scale_x_continuous(labels = function(x) paste0(x,"$"),breaks =seq (0,15000,2500))+
-  scale_y_continuous(labels = function(x) paste0(x,"%"))+
-  xlab("GDP per capita")+
-  ylab("Access to electricity")+
-  ggtitle("Access to Electricity and GDP per capita")
-```
-
 <img src="Development-Indicators-2017-Visualisation-Report_files/figure-gfm/unnamed-chunk-11-1.png" style="display: block; margin: auto;" />
 
 ### Arable Land Map
 
 <img src="Development-Indicators-2017-Visualisation-Report_files/figure-gfm/Fig21-1.png" style="display: block; margin: auto;" />
-\### Education expenditure Map
+
+### Education expenditure Map
 
 <img src="Development-Indicators-2017-Visualisation-Report_files/figure-gfm/Fig22-1.png" style="display: block; margin: auto;" />
+
+In the next part we’re going determine any clustering behaviour, which
+will then be investigated further using various dimension reduction and
+clustering methods.

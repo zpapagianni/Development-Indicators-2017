@@ -69,9 +69,10 @@ In particular, the data contains 14 variables:
 # Exploratory data analysis
 ## Structure
 Our dataset has 68 observations and 14 variables as mentioned above. The first three variables are characters while the rest of the variables are continuous numeric values. 
-```{r,echo=TRUE}
+```{r,echo=FALSE}
 #High-level information
-str(dev.inc)
+dev.inc %>% 
+  knitr::kable("html")
 ```
 The variables `region` and `income` are categorical and they take only predefined values. Those variables are saved as characters and hence we convert them to factors. We observe that region has 7 levels and income has 3. However the variable `income` is in random order and in order to facilitate our analysis we reorder the levels.  
 ```{r,,echo=FALSE}
@@ -82,7 +83,6 @@ dev.inc$income<-as.factor(dev.inc$income)
 
 levels(dev.inc$income) %>% 
   knitr::kable("html")
-
 
 #Change the order of levels
 dev.inc$income <- factor(dev.inc$income, levels = c("Lower middle income", "Upper middle income","High income"))
@@ -114,7 +114,7 @@ dev.inc %>% select(Education.Expend,income) %>%
 ```
 
 The graph below shows the variable `Education.Expend` plotted againts `GDP.precap` and `Market.Cap.pcntGDP` by region and income.The missing values are shown as red dots near the bottom of each panel. 
-We can see that the missing values exist across the whole range in both of the graphs and the distribution is similar to the one of the none missing observations .In particular, in the first graph it can be seen that some values are clustered in the lower range of GDP. In the second graph, the missing values are uniformly distributed acrros the x-axis.
+We can see that the missing values exist across the whole range in both of the graphs and the distribution is similar to the one of the none missing observations. In particular, in the first graph it can be seen that some values are clustered in the lower range of GDP. In the second graph, the missing values are uniformly distributed acrros the x-axis.
 
 ```{r,Fig3,echo=FALSE,fig.align='center',fig.cap="\\label{fig:fig3} Missing Values"}
 ggplot(dev.inc, aes(x = GDP.percap,y = Education.Expend)) + 
@@ -213,7 +213,9 @@ for (i in 1:ncol(num.data)){
 }
 do.call("grid.arrange", c(boxplots, ncol=5))
 ```
+
 # Exploration of the univariate and multivariate distribution
+
 Up until now we investigate the structure and quality of the data. The following section presents a brief exploration of the univariate and multivariate distribution of the data.
 
 ## Univariate Analysis
@@ -304,7 +306,9 @@ ggplot(ed.exp,aes(x=Education.Expend))+
   xlab('Government expenditure on education(% of GDP)')+
   ggtitle('Education Expenditure Histogram')+coord_flip()
 ```
+
 ## Multivariate Analysis
+
 The figure below is visual representation of the multivariate correlation structure and their significance levels. The heatmap shows the pairwise Pearson correlation coefficients between the variables. The variables which do not have a significant correlation are left blank. We observe that:
 
 * Mortality has a very high negative correlation with access to electricity and lives expectancy of both genders.
@@ -455,6 +459,7 @@ leaflet(my_spdf) %>% addTiles()  %>%
             position = "bottomleft")
 
 ```
+
 ### CO2 and income
 
 The first plot shows a violin plot of CO2 emissions per income category. We can see that the mean CO2 consumption doesn't differ a lot between different categories, but as we move up the categories, the range of the distirbution increases.
@@ -874,28 +879,8 @@ leaflet(my_spdf) %>% addTiles()  %>%
 
 ### Access to electricity Map
 
-```{r Fig20,echo=FALSE,fig.align='center'}
-#Arable.Land.pcnt
-mybins_elec<-seq(0,50,10)
-mypalette_elec <- colorBin(palette="Purple", domain=join.coord$Access2Elec.pcnt, na.color="transparent", 
-                                    bins=mybins_elec)
-##Arable.Land
-leaflet(my_spdf) %>% addTiles()  %>% 
-  setView(lat=10, lng=0 , zoom=2) %>%
-  addPolygons( 
-    fillColor = ~mypalette_elec(join.coord$Access2Elec.pcnt), 
-    stroke=TRUE, 
-    fillOpacity = 0.9, 
-    color="white", 
-    weight=0.3) %>% 
-  addLegend( 
-    pal=mypalette_elec, 
-    values=~join.coord$Access2Elec.pcnt, 
-    opacity=0.9, title = "Access to Electricity (%)", 
-    position = "bottomleft" )
-```
 The plot below shows only countries with Access to Electricity less than 100%.We can see that all countries are categorised as either lower or upper middle income. 
-```{r}
+```{r,echo=FALSE}
 dev.inc %>% 
   select(country,income,GDP.percap,Access2Elec.pcnt) %>% 
   filter(Access2Elec.pcnt<99) %>% 
@@ -942,6 +927,7 @@ map_arable<-leaflet(my_spdf) %>% addTiles()  %>%
     position = "bottomleft" )
 map_arable
 ```
+
 ### Education expenditure Map
 
 ```{r Fig22,echo=FALSE,fig.align='center'}
@@ -964,3 +950,4 @@ leaflet(my_spdf) %>% addTiles()  %>%
     position = "bottomleft" )
 ```
 
+In the next part we're going determine any clustering behaviour, which will then be investigated further using various dimension reduction and clustering methods.
