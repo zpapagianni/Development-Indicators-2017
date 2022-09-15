@@ -21,10 +21,10 @@ The project is divided into two sections:
      * K-means Clustering on PCA data.
 
 Here are the important files (the remaining files should be ignored):
-* [Development-Indicators-2017-Visualisation-Report.md](./Part_1-EDA-Visualisation//Development-Indicators-2017-Visualisation-Report.md:: The github markdown document which contain the detailed step of the above analysis.
+* [Development-Indicators-2017-Visualisation-Report.md](./Part_1-EDA-Visualisation//Development-Indicators-2017-Visualisation-Report.md): The github markdown document which contain the detailed step of the above analysis.
 * [Development-Indicators-2017-Visualisation-Report.Rmd](./Part_1-EDA-Visualisation/Development-Indicators-2017-Visualisation.Rmd):The rmarkdown file that contains the detailed step of the explaratory analysis and visualisation.
 * [Development-Indicators-2017-PCA-Kclust.Rmd](./Part_2-PCA-K-cluster Analysis/Development-Indicators-2017-PCA-Kclust.Rmd):The rmarkdown file that contains the detailed steps followed in the  principal compoments and cluster analysis.
-* [Development-Indicators-2017-PCA-Kclust.md](./Part_2-PCA-K-cluster Analysis/Development-Indicators-2017-PCA-Kclust.md:: The github friendly document which contain the detailed step of the above analysis.
+* [Development-Indicators-2017-PCA-Kclust.md](./Part_2-PCA-K-cluster Analysis/Development-Indicators-2017-PCA-Kclust.md): The github friendly document which contain the detailed step of the above analysis.
 * [Development-Indicators-2017.R](./Development-Indicators-2017.R): Contains the code that was used for the analysis.
 * [data.csv](./data.csv): Input data.
 
